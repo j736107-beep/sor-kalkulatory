@@ -35,6 +35,7 @@ var TOX=tabbed({id:'tox',icon:'☠️',name:'Zatrucia'},'Zatrucia',[['p','Parace
    if(isFinite(o.uk))s+='Linia leczenia w '+F(g('t'))+' h: UK <b>'+F(o.uk,0)+'</b> · US <b>'+F(o.us,0)+'</b> mg/l'+(o.aboveUK!=null?(o.aboveUK?' → <span class="r">POWYŻEJ – leczyć</span>':' → poniżej'):'');
    else if(isFinite(g('t')))s+='<span class="o">Nomogram tylko 4–24 h po jednorazowym spożyciu</span>';
    H+=bx(o.lvl,'',s||'Podaj dawkę, czas, stężenie.');
+   if(o.lvl!=='red')return{H:H+bx('orange','NAC','Brak wskazań wg wprowadzonych danych (poniżej linii, <150 mg/kg, znany czas) – uzupełnij dane; decyzja wg protokołu.'),lvl:lvl};
    if(!(w>0))return{H:H+nw().H,lvl:lvl};var n=B.nac21(w);
    H+=bx(o.lvl==='red'?'red':'ok','NAC – schemat 21 h (200 mg/ml)'+dw('stężenie preparatu PL'),n.bags.map(function(b,k){return (k+1)+'. <b>'+F(b.mg,0)+' mg</b> ('+b.mgkg+' mg/kg) = '+F(b.ml,1)+' ml w '+b.vol+' ml G5% / '+b.h+' h → <b>'+F(b.mlh,0)+' ml/h</b>'}).join('<br>')+(n.capped?'<div class="o">Masa >110 kg – liczono dla 110 kg</div>':''));}
   if(t==='o'){var n=B.naloxone(g('dep'));H+=bx('ok','Nalokson','<span class="big">'+n.txt+'</span>');

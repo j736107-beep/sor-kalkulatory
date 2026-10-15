@@ -10,17 +10,19 @@ SKM.util.tabbed=tabbed;SKM.util.chk=chk;
 // ============ ANTYKOAGULACJA ============
 var A=SK.acoag,AS=A.SRC;
 var ACO=tabbed({id:'acoag',icon:'🩸',name:'Antykoagulacja'},'Antykoagulacja i odwracanie',[['ufh','Heparyna'],['enox','Enoksaparyna'],['vka','Warfaryna'],['noac','NOAC'],['prot','Protamina']],
- function(t){return t==='ufh'?chk('acs','ACS (zamiast ŻChZZ/ZP)'):t==='enox'?chk('proph','profilaktyka (zamiast leczenia)'):t==='vka'?inp('inr','INR','')+chk('bleed','krwawienie zagrażające życiu / pilny zabieg'):t==='noac'?chk('dabi','dabigatran')+chk('api','apiksaban')+chk('riva','riwaroksaban/edoksaban')+inp('ld','Ostatnia dawka','mg')+inp('hr','Ile godzin temu','h'):
+ function(t){return t==='ufh'?chk('acs','ACS (zamiast ŻChZZ/ZP)'):t==='enox'?chk('proph','profilaktyka (zamiast leczenia)'):t==='vka'?inp('inr','INR','')+chk('bleed','krwawienie zagrażające życiu / pilny zabieg'):t==='noac'?chk('nb','krwawienie zagrażające życiu / pilny zabieg')+chk('dabi','dabigatran')+chk('api','apiksaban')+chk('riva','riwaroksaban/edoksaban')+inp('ld','Ostatnia dawka','mg')+inp('hr','Ile godzin temu','h'):
   inp('rate','UFH wlew','j./h')+inp('bol','Bolus UFH','j.')+inp('hb','Bolus ile h temu','h')+inp('enx','Enoksaparyna','mg')+inp('he','Enoks. ile h temu','h');},
  function(t,g,P){var H='',lvl='ok',w=P.w;if(!(w>0)&&t!=='prot')return{H:bx('orange','','Podaj masę ciała w pasku pacjenta.'),lvl:'ok'};
   if(t==='ufh'){var o=A.ufh(w,g('acs')?'acs':'vte');H=bx('ok','Heparyna niefrakcjonowana','Bolus <span class="big">'+F(o.bolus,0)+' j.</span> = '+F(o.bolus/5000,2)+' ml (5000 j./ml)<br>Wlew <span class="big">'+F(o.rate,0)+' j./h = '+F(o.mlh,1)+' ml/h</span><div class="mut">25 000 j. (5 ml) + 45 ml NaCl 0,9% = 500 j./ml · '+o.txt+'</div>'+(o.bolusCap||o.rateCap?'<div class="o">Zastosowano maksimum ACS</div>':'')+'<div class="mut">aPTT po 6 h, wg protokołu</div>');
    if(P.co.preg)H+=bx('ok','','Ciąża: heparyny nie przechodzą przez łożysko.');}
   if(t==='enox'){var o=A.enox(w,P.crcl,g('proph')?'proph':'tx');lvl=o.lvl;H=bx(o.lvl,'Enoksaparyna (Clexane 100 mg/ml)','<span class="big">'+F(o.dose,0)+' mg s.c. '+o.freq+'</span> = '+F(o.ml,2)+' ml'+(o.note?'<div class="'+(o.lvl==='red'?'r':'o')+'">'+o.note+'</div>':'')+(o.note2?'<div class="o">'+o.note2+'</div>':'')+(!isFinite(P.crcl)?'<div class="o">Brak CrCl – podaj wiek i kreatyninę</div>':''));}
   if(t==='vka'){var inr=g('inr'),o=A.pccInr(w,inr);if(g('bleed'))lvl='red';
-   H=bx(g('bleed')?'red':'ok','Witamina K','<span class="big">10 mg i.v.</span> powoli (ACC 2020: 5–10 mg)');
+   if(!g('bleed'))H=bx('orange','','Brak wskazań do odwracania – zaznacz krwawienie zagrażające życiu / pilny zabieg (przy samym INR: wstrzymaj VKA wg protokołu).');
+   else{H=bx(g('bleed')?'red':'ok','Witamina K','<span class="big">10 mg i.v.</span> powoli (ACC 2020: 5–10 mg)');
    if(o&&o.iu)H+=bx(g('bleed')?'red':'orange','4F-PCC (Beriplex, 25 j./ml)','<span class="big">'+F(o.iu,0)+' j. = '+F(o.ml,0)+' ml</span> ('+o.perKg+' j./kg'+(o.cap?', maksimum':'')+')<div class="mut">tylko przy krwawieniu zagrażającym życiu / pilnym zabiegu</div>');
-   else if(isFinite(inr))H+=bx('','',o.txt);}
-  if(t==='noac'){if(g('dabi')){lvl='red';H+=bx('red','Dabigatran → Praxbind','<span class="big">Idarucyzumab 5 g i.v.</span><div>2 fiolki × 2,5 g/50 ml</div>');}
+   else if(isFinite(inr))H+=bx('','',o.txt);else H+=bx('orange','','Podaj INR.');}}
+  if(t==='noac'&&!g('nb'))H=bx('orange','','Brak wskazań do odwracania – zaznacz krwawienie zagrażające życiu / pilny zabieg.');
+  else if(t==='noac'){if(g('dabi')){lvl='red';H+=bx('red','Dabigatran → Praxbind','<span class="big">Idarucyzumab 5 g i.v.</span><div>2 fiolki × 2,5 g/50 ml</div>');}
    if(g('api')||g('riva')){lvl='red';var a=A.andex(g('api')?'api':'riva',g('ld'),g('hr')),p=A.pccXa(w);H+=bx('red','Anty-Xa → andeksanet (Ondexxya)','Dawka <b>'+a.reg+'</b>: '+a.txt)+bx('orange','Bez andeksanetu','PCC <span class="big">'+F(p.iu,0)+' j. = '+F(p.ml,0)+' ml</span> (50 j./kg, EHRA 2021) <span class="dw">maks. DO WERYFIKACJI</span>');}
    if(!H)H=bx('','','Zaznacz lek.');}
   if(t==='prot'){var pu=A.protUfh(g('rate'),g('bol'),g('hb')),pe=A.protEnox(g('enx'),g('he'));
@@ -32,10 +34,11 @@ var ACO=tabbed({id:'acoag',icon:'🩸',name:'Antykoagulacja'},'Antykoagulacja i 
 // ============ ZATOROWOŚĆ PŁUCNA ============
 var PE=SK.pe;
 var PEM=tabbed({id:'pe',icon:'🫁',name:'Zatorowość płucna'},'Zatorowość płucna',[['r','Ryzyko'],['t','Tromboliza']],
- function(t){return t==='r'?chk('shock','niestabilność hemodynamiczna')+chk('age80','wiek >80')+chk('cancer','nowotwór')+chk('cardio','przewlekła ch. serca/płuc')+chk('hr','HR ≥110')+chk('sbp','SBP <100')+chk('sat','SaO₂ <90%')+chk('rv','dysfunkcja RV (echo/CT)')+chk('trop','troponina ↑'):chk('ci','przeciwwskazania bezwzględne do trombolizy')+chk('cpr','RKO');},
+ function(t){return t==='r'?chk('shock','niestabilność hemodynamiczna')+chk('age80','wiek >80')+chk('cancer','nowotwór')+chk('cardio','przewlekła ch. serca/płuc')+chk('hr','HR ≥110')+chk('sbp','SBP <100')+chk('sat','SaO₂ <90%')+chk('rv','dysfunkcja RV (echo/CT)')+chk('trop','troponina ↑'):chk('ind','wskazanie: ZP wysokiego ryzyka / pogorszenie hemodynamiczne')+chk('ci','przeciwwskazania bezwzględne do trombolizy')+chk('cpr','RKO');},
  function(t,g,P){var w=P.w,H='',lvl='ok';
   if(t==='r'){var i={};['shock','age80','cancer','cardio','hr','sbp','sat','rv','trop'].forEach(function(k){i[k]=g(k)});if(P.age>80)i.age80=true;var s=PE.spesi(i),r=PE.risk(i);lvl=r.lvl;
    H=bx(s.low?'ok':'orange','sPESI','<span class="big">'+s.score+'</span> '+(s.items.join(', ')||''))+bx(r.lvl,'Ryzyko (ESC 2019)','<b>'+r.txt+'</b>');}
+  if(t==='t'&&!g('ind'))return{H:bx('orange','','Brak wskazań do trombolizy – tylko ZP wysokiego ryzyka (wstrząs/hipotensja) lub pogorszenie hemodynamiczne (ESC 2019).'),lvl:'ok'};
   if(t==='t'){if(!(w>0))return{H:bx('orange','','Podaj masę ciała.'),lvl:'ok'};var a=PE.alteplase(w);lvl=g('ci')?'red':'ok';
    H=bx(g('ci')?'red':'ok','Alteplaza (Actilyse 1 mg/ml) – standard','<span class="big">'+F(a.bolus,0)+' mg bolus + '+F(a.inf,0)+' mg w 2 h</span> = '+F(a.infMlh,1)+' ml/h<div>Razem '+F(a.total,0)+' mg'+(a.lowW?' (<65 kg: 1,5 mg/kg)':'')+'</div>'+(g('ci')?'<div class="r">⚠ Przeciwwskazania – rozważ embolektomię / leczenie przezskórne</div>':''))+
     bx('','Schemat przyspieszony (ESC 2019)','<b>'+F(a.acc,0)+' mg w 15 min</b> (0,6 mg/kg, maks. 50 mg)')+bx('','','Heparyna: wstrzymaj w czasie wlewu alteplazy; UFH bolus '+F(80*w,0)+' j. przed trombolizą.')+(g('cpr')?bx('orange','RKO','Dawka w zatrzymaniu krążenia <span class="dw">DO WERYFIKACJI</span> (ERC 2021: rozważ trombolizę, RKO 60–90 min)'):'');
@@ -50,7 +53,7 @@ var AHF=tabbed({id:'ahf',icon:'❤️',name:'Ostra niewydolność serca'},'Ostra
   if(a.w.length)H+=bx(a.lvl,'','<div class="'+(a.lvl==='red'?'r':'o')+'">⚠ '+a.w.join('<br>⚠ ')+'</div>');
   var fu=HF.furo(g('oral'));H+=bx(fu.lo>HF.maxDay?'orange':'ok','Furosemid i.v.','<span class="big">'+F(fu.lo,0)+(fu.hi!==fu.lo?'–'+F(fu.hi,0):'')+' mg</span> · '+fu.txt+'<div class="mut">'+HF.diuresisCheck().txt+'</div>'+(fu.lo>HF.maxDay?'<div class="o">Powyżej 400 mg/d</div>':'')+(isFinite(P.crcl)&&P.crcl<30?'<div class="o">CrCl <30 – często potrzebne wyższe dawki</div>':''));
   var n=HF.ntg(g('sbp')),d=isFinite(g('ntgd'))?g('ntgd'):10,ml=HF.ntgMlh(d,1);
-  H+=bx(n.ok?(d>n.max?'red':'ok'):(isFinite(g('sbp'))?'orange':''),'Nitrogliceryna i.v. (50 mg/50 ml = 1 mg/ml)',n.ok||!isFinite(g('sbp'))?'<span class="big">'+F(d)+' µg/min = '+F(ml,1)+' ml/h</span><div class="mut">'+n.txt+'</div>'+(d>n.max?'<div class="r">⚠ Powyżej 200 µg/min</div>':''):'<b class="o">'+n.txt+'</b>');if(d>n.max&&n.ok)lvl='red';
+  H+=bx(n.ok?(d>n.max?'red':'ok'):(isFinite(g('sbp'))?'orange':''),'Nitrogliceryna i.v. (50 mg/50 ml = 1 mg/ml)',!isFinite(g('sbp'))?'<b class="o">Podaj SBP – nitraty tylko przy SBP >110</b>':n.ok?'<span class="big">'+F(d)+' µg/min = '+F(ml,1)+' ml/h</span><div class="mut">'+n.txt+'</div>'+(d>n.max?'<div class="r">⚠ Powyżej 200 µg/min</div>':''):'<b class="o">'+n.txt+'</b>');if(d>n.max&&n.ok)lvl='red';
   if(isFinite(g('sbp'))&&g('sbp')<90)H+=bx('red','Wstrząs','Noradrenalina / dobutamina → moduł <b>Pompy SOR</b>; konsultacja kardiologiczna, ECHO');
   H+=bx('','','Tlen gdy SpO₂ <90%; NIV przy niewydolności oddechowej. Morfina – nie rutynowo.');
   return{H:H,lvl:lvl};},

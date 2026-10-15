@@ -20,12 +20,13 @@ var DKA={id:'dka',icon:'🍬',name:'DKA / HHS',render:function(el,X){var S=X.S,m
  function upd(){var P=X.P(),w=P.w,gl=g('glu'),ur=g('urea');var i={w:w,glu:mg?gl/18.016:gl,ket:g('ket'),ph:g('ph'),hco3:g('hco3'),k:g('k'),na:g('na'),cl:g('cl'),urea:mg?ur/6.006:ur,sbp:g('sbp'),gcs:g('gcs'),knownDM:g('dm'),co:P.co,age:P.age};
   var o=SK.dka.compute(i),H='';var dx={dka:'DKA',hhs:'HHS',mixed:'DKA + HHS (mieszany) → leczyć jak DKA',none:'Brak pełnych kryteriów DKA/HHS'}[o.mode];
   H+=bx(o.mode==='none'?'':o.lvl,'',' <span class="big">'+dx+'</span>'+(o.warn.length?'<div class="r">⚠ '+o.warn.map(h).join('<br>⚠ ')+'</div>':''));
-  if(!(w>0))H+=bx('orange','','Podaj masę ciała w pasku pacjenta.');
+  if(!o.indicated)H+=bx('orange','Insulina','<b>Uzupełnij dane / brak kryteriów — nie podawaj wlewu wg protokołu DKA</b>');
+  else if(!(w>0))H+=bx('orange','','Podaj masę ciała w pasku pacjenta.');
   else{var ins=o.insUh;H+=bx(o.holdIns?'red':(ins>15&&o.mode!=='hhs'?'orange':'ok'),'Insulina – NovoRapid 50 j./50 ml (1 j./ml)',
    (o.holdIns?'<div class="r">WSTRZYMAJ insulinę do K⁺ >3,5</div>':'')+'<span class="big">'+F(ins)+' j./h = '+F(o.insMlh)+' ml/h</span> <span class="mut">('+F(o.insPerKg)+' j./kg/h)</span>'+
    '<div class="mut">0,5 ml z pena (50 j.) + 49,5 ml NaCl 0,9%</div>'+(o.insNote?'<div class="o">'+o.insNote+'</div>':''));}
   if(o.kTxt)H+=bx(i.k<3.5?'red':'ok','Potas',h(o.kTxt));
-  H+=bx(o.shock?'red':o.fluidCaution?'orange':'ok','Płyny – NaCl 0,9%',o.shock?'<b>'+o.fluids[0].txt+'</b>':o.fluids.map(function(f,n){return (n+1)+'. 1 l / '+(f.t/60)+' h = <b>'+F(f.mlh)+' ml/h</b>'}).join(' · ')+(o.fluidCaution?'<div class="o">Ostrożnie: wiek 18–25 / ≥65, ciąża, serce, nerki</div>':''));
+  if(o.fluids.length)H+=bx(o.shock?'red':o.fluidCaution?'orange':'ok','Płyny – NaCl 0,9%',o.shock?'<b>'+o.fluids[0].txt+'</b>':o.fluids.map(function(f,n){return (n+1)+'. 1 l / '+(f.t/60)+' h = <b>'+F(f.mlh)+' ml/h</b>'}).join(' · ')+(o.fluidCaution?'<div class="o">Ostrożnie: wiek 18–25 / ≥65, ciąża, serce, nerki</div>':''));
   H+=bx(o.gluSwitch?'orange':'','Glukoza',o.gluSwitch?'<b>'+h(o.gluTxt)+'</b>'+(o.mode!=='hhs'?'<div>Insulina ↓ 0,05 j./kg/h</div>':''):'<span class="mut">'+h(o.gluTxt)+'</span>');
   if(o.hhsTargets)H+=bx('orange','HHS',h(o.hhsTargets));
   var c=[];if(isFinite(o.ag))c.push('Luka anionowa <b>'+F(o.ag,0)+'</b>');if(isFinite(o.osm))c.push('Osm <b>'+F(o.osm,0)+'</b> mOsm/kg');if(isFinite(o.naCorr16))c.push('Na skoryg. <b>'+F(o.naCorr16,0)+'</b> / '+F(o.naCorr24,0));
@@ -47,7 +48,7 @@ var EL={id:'elyte',icon:'⚗️',name:'Elektrolity',render:function(el,X){var mg
   var g=bind(f,'elyte_'+tab,upd);EL.update=upd;
   function upd(){var P=X.P(),H='',lvl='ok';
    if(tab==='na'){var hr=g('hr')||P.co.liver;var o=SK.elyte.hypoNa({w:P.w,na:g('na'),sex:P.sex,age:P.age,severe:g('sev'),highRisk:hr,target:g('tg')});
-    if(!o)H=bx('orange','','Podaj masę (pasek) i Na⁺.');else{lvl=o.lvl;
+    if(!o)H=bx('orange','','Podaj masę (pasek) i Na⁺.');else if(o.noHypo)H=bx('ok','','Na⁺ ≥135 – brak hiponatremii, brak wskazań do korekcji.');else{lvl=o.lvl;
      if(g('sev'))H+=bx('red','Objawy ciężkie','<span class="big">3% NaCl 150 ml w 20 min</span><div>Kontrola Na po 20 min, powtórz do 2× lub do wzrostu o 5 mmol/l</div><div class="mut">szac. wzrost po 150 ml: '+F(o.bolusRise,1)+' mmol/l</div>');
      H+=bx(o.lvl==='red'&&o.warn.length?'red':'ok','Limit korekcji','<span class="big">≤ '+o.limit+' mmol/l / 24 h</span>'+(o.limit===8?' <span class="o">(wysokie ryzyko ODS)</span>':'')+' · potem ≤8 / każde 24 h'+(o.warn.length?'<div class="r">⚠ '+o.warn.join('<br>')+'</div>':''));
      H+=bx('','Adrogué–Madias (TBW '+F(o.tbw,1)+' l)','1 l 3% NaCl: <b>+'+F(o.d3,1)+'</b> mmol/l · 1 l 0,9% NaCl: <b>+'+F(o.d09,1)+'</b> mmol/l<div>Plan +'+F(o.target,1)+' mmol/l/24 h → 3% NaCl <b>'+F(o.vol3,0)+' ml</b> = <b>'+F(o.mlh3,1)+' ml/h</b></div>');}}
