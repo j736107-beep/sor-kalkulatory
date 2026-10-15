@@ -4,7 +4,8 @@
 var SRC={ESE:'ESE/ESICM/ERBP: hiponatremia 2014',US:'US Expert Panel hiponatremia 2013 (Verbalis)',UKKA:'UKKA Hyperkalaemia 10.2023',ERC:'ERC 2021 – szczególne okoliczności / zaburzenia rytmu',SFE:'Society for Endocrinology: ostra hipokalcemia 2016'};
 var NA3=513, NA09=154; // mmol/l w 3% i 0,9% NaCl
 function nz(x){return typeof x==='number'&&isFinite(x);}
-function tbwFactor(sex,age){var old=age>=65;return sex==='f'?(old?0.45:0.5):(old?0.5:0.6);}
+function tbwFactor(sex,age){var old=!(age<65); // wiek nieznany → jak ≥65 (ostrożniej)
+return sex==='m'?(old?0.5:0.6):(old?0.45:0.5);} // płeć nieznana → wartości kobiece (mniejsza TBW = ostrożniej)
 // Adrogué–Madias: zmiana Na po 1 l płynu
 function adrogue(na,inf,tbw){return (inf-na)/(tbw+1);}
 function hypoNa(i){var o={lvl:'ok',warn:[]};if(!(i.w>0&&nz(i.na)))return null;

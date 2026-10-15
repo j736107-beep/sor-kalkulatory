@@ -9,8 +9,17 @@ function tabbed(mod,title,tabs,form,calc,info){return {id:mod.id,icon:mod.icon,n
 SKM.util.tabbed=tabbed;SKM.util.chk=chk;
 // ============ ANTYKOAGULACJA ============
 var A=SK.acoag,AS=A.SRC;
+// --- wspólna karta odwracania NOAC (Antykoagulacja + Transfuzjologia) ---
+function NOACF(){return chk('nb','krwawienie zagrażające życiu / pilny zabieg')+chk('dabi','dabigatran (Pradaxa)')+chk('api','apiksaban (Eliquis)')+chk('riva','riwaroksaban (Xarelto)')+chk('edo','edoksaban (Lixiana)')+inp('ld','Ostatnia dawka','mg')+inp('hr','Ile godzin temu','h');}
+function NOACC(g,w){var H='',lvl='ok';if(!g('nb'))return{H:bx('orange','','Brak wskazań do odwracania – zaznacz krwawienie zagrażające życiu / pilny zabieg.'),lvl:'ok'};
+ if(g('dabi')){lvl='red';H+=bx('red','Dabigatran → Praxbind','<span class="big">Idarucyzumab 5 g i.v.</span><div>2 fiolki × 2,5 g/50 ml</div>');}
+ if(g('api')||g('riva')){lvl='red';var a=A.andex(g('api')?'api':'riva',g('ld'),g('hr'));H+=bx('red','Anty-Xa → andeksanet (Ondexxya)','Dawka <b>'+a.reg+'</b>: '+a.txt+(isFinite(g('ld'))?'':'<div class="o">Brak dawki → przyjęto dawkę wysoką (ChPL: nieznana dawka)</div>'));}
+ if(g('api')||g('riva')||g('edo')){lvl='red';if(!(w>0))H+=bx('orange','','Podaj masę ciała (PCC).');else{var p=A.pccXa(w);H+=bx('orange',g('edo')&&!g('api')&&!g('riva')?'Edoksaban → PCC (andeksanet poza rejestracją UE)':'Bez andeksanetu','PCC <span class="big">'+F(p.iu,0)+' j. = '+F(p.ml,0)+' ml</span> (50 j./kg, EHRA 2021) <span class="dw">maks. DO WERYFIKACJI</span>');}}
+ if(!H)H=bx('','','Zaznacz lek.');return{H:H,lvl:lvl};}
+SKM.util.NOACF=NOACF;SKM.util.NOACC=NOACC;
+
 var ACO=tabbed({id:'acoag',icon:'🩸',name:'Antykoagulacja'},'Antykoagulacja i odwracanie',[['ufh','Heparyna'],['enox','Enoksaparyna'],['vka','Warfaryna'],['noac','NOAC'],['prot','Protamina']],
- function(t){return t==='ufh'?chk('acs','ACS (zamiast ŻChZZ/ZP)'):t==='enox'?chk('proph','profilaktyka (zamiast leczenia)'):t==='vka'?inp('inr','INR','')+chk('bleed','krwawienie zagrażające życiu / pilny zabieg'):t==='noac'?chk('nb','krwawienie zagrażające życiu / pilny zabieg')+chk('dabi','dabigatran')+chk('api','apiksaban')+chk('riva','riwaroksaban/edoksaban')+inp('ld','Ostatnia dawka','mg')+inp('hr','Ile godzin temu','h'):
+ function(t){return t==='ufh'?chk('acs','ACS (zamiast ŻChZZ/ZP)'):t==='enox'?chk('proph','profilaktyka (zamiast leczenia)'):t==='vka'?inp('inr','INR','')+chk('bleed','krwawienie zagrażające życiu / pilny zabieg'):t==='noac'?NOACF():
   inp('rate','UFH wlew','j./h')+inp('bol','Bolus UFH','j.')+inp('hb','Bolus ile h temu','h')+inp('enx','Enoksaparyna','mg')+inp('he','Enoks. ile h temu','h');},
  function(t,g,P){var H='',lvl='ok',w=P.w;if(!(w>0)&&t!=='prot')return{H:bx('orange','','Podaj masę ciała w pasku pacjenta.'),lvl:'ok'};
   if(t==='ufh'){var o=A.ufh(w,g('acs')?'acs':'vte');H=bx('ok','Heparyna niefrakcjonowana','Bolus <span class="big">'+F(o.bolus,0)+' j.</span> = '+F(o.bolus/5000,2)+' ml (5000 j./ml)<br>Wlew <span class="big">'+F(o.rate,0)+' j./h = '+F(o.mlh,1)+' ml/h</span><div class="mut">25 000 j. (5 ml) + 45 ml NaCl 0,9% = 500 j./ml · '+o.txt+'</div>'+(o.bolusCap||o.rateCap?'<div class="o">Zastosowano maksimum ACS</div>':'')+'<div class="mut">aPTT po 6 h, wg protokołu</div>');
@@ -21,10 +30,7 @@ var ACO=tabbed({id:'acoag',icon:'🩸',name:'Antykoagulacja'},'Antykoagulacja i 
    else{H=bx(g('bleed')?'red':'ok','Witamina K','<span class="big">10 mg i.v.</span> powoli (ACC 2020: 5–10 mg)');
    if(o&&o.iu)H+=bx(g('bleed')?'red':'orange','4F-PCC (Beriplex, 25 j./ml)','<span class="big">'+F(o.iu,0)+' j. = '+F(o.ml,0)+' ml</span> ('+o.perKg+' j./kg'+(o.cap?', maksimum':'')+')<div class="mut">tylko przy krwawieniu zagrażającym życiu / pilnym zabiegu</div>');
    else if(isFinite(inr))H+=bx('','',o.txt);else H+=bx('orange','','Podaj INR.');}}
-  if(t==='noac'&&!g('nb'))H=bx('orange','','Brak wskazań do odwracania – zaznacz krwawienie zagrażające życiu / pilny zabieg.');
-  else if(t==='noac'){if(g('dabi')){lvl='red';H+=bx('red','Dabigatran → Praxbind','<span class="big">Idarucyzumab 5 g i.v.</span><div>2 fiolki × 2,5 g/50 ml</div>');}
-   if(g('api')||g('riva')){lvl='red';var a=A.andex(g('api')?'api':'riva',g('ld'),g('hr')),p=A.pccXa(w);H+=bx('red','Anty-Xa → andeksanet (Ondexxya)','Dawka <b>'+a.reg+'</b>: '+a.txt)+bx('orange','Bez andeksanetu','PCC <span class="big">'+F(p.iu,0)+' j. = '+F(p.ml,0)+' ml</span> (50 j./kg, EHRA 2021) <span class="dw">maks. DO WERYFIKACJI</span>');}
-   if(!H)H=bx('','','Zaznacz lek.');}
+  if(t==='noac'){var r=NOACC(g,w);H=r.H;lvl=r.lvl;}
   if(t==='prot'){var pu=A.protUfh(g('rate'),g('bol'),g('hb')),pe=A.protEnox(g('enx'),g('he'));
    if(pu.units>0)H+=bx(pu.cap?'orange':'ok','Protamina na UFH','<span class="big">'+F(pu.mg,0)+' mg = '+F(pu.ml,1)+' ml</span> (10 mg/ml) · na '+F(pu.units,0)+' j. z ostatnich 2 h'+(pu.cap?'<div class="o">maks. 50 mg</div>':'')+'<div class="mut">powoli ≤5 mg/min</div>');
    if(pe)H+=bx(pe.cap?'orange':'ok','Protamina na enoksaparynę','<span class="big">'+F(pe.mg,0)+' mg = '+F(pe.ml,1)+' ml</span> ('+F(pe.f)+' mg/1 mg)'+(pe.cap?'<div class="o">maks. 50 mg</div>':''));

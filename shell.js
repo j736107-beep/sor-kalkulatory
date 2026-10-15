@@ -1,7 +1,7 @@
 (function(){var C=SK.core,$=function(s,r){return (r||document).querySelector(s)};
 var DEF={sound:true,vol:0.7,units:'mmol',crea:'mgdl',fs:16,syr:50};
 function load(k,d){try{return Object.assign({},d,JSON.parse(localStorage.getItem(k)||'{}'))}catch(e){return Object.assign({},d)}}
-var S=load('sk_settings',DEF),PT=load('sk_patient',{w:'',age:'',sex:'m',crea:'',co:{}}),cur=localStorage.getItem('sk_mod')||'pompy',muted=false,alarms={};
+var S=load('sk_settings',DEF),PT=load('sk_patient',{w:'',age:'',sex:'',crea:'',co:{}}),cur=localStorage.getItem('sk_mod')||'pompy',muted=false,alarms={};
 function saveS(){localStorage.setItem('sk_settings',JSON.stringify(S))}function saveP(){localStorage.setItem('sk_patient',JSON.stringify(PT))}
 window.SKS={get S(){return S},P:function(){var p=C.patient({w:PT.w,age:PT.age,sex:PT.sex,crea:PT.crea,creaU:S.crea,co:PT.co});return p;},alarm:alarm,saveS:saveS,DEF:DEF,setS:function(k,v){S[k]=v;saveS();applyS();}};
 // ---------- alarm: czerwona lampa + syrena ----------
@@ -14,7 +14,7 @@ $('#lamp').onclick=function(){try{siren.pause()}catch(e){}};
 // ---------- pasek pacjenta ----------
 function applyS(){document.documentElement.style.setProperty('--fs',S.fs+'px');$('#pcu').textContent=S.crea==='umol'?'µmol/l':'mg/dl';}
 function patBar(){var p=SKS.P();$('#pw').classList.toggle('bad',p.wFlag==='red');$('#pw').classList.toggle('warn',p.wFlag==='orange');
- $('#pcr').textContent='CrCl '+(isFinite(p.crcl)?C.fmt(p.crcl,0)+' ml/min':'—');$('#pcr').style.background=isFinite(p.crcl)&&p.crcl<30?'#ffd9de':isFinite(p.crcl)&&p.crcl<60?'#ffeccc':'';
+ $('#pcr').textContent='CrCl '+(isFinite(p.crcl)?C.fmt(p.crcl,0)+' ml/min':(PT.sex?'—':'— (płeć?)'));$('#pcr').style.background=isFinite(p.crcl)&&p.crcl<30?'#ffd9de':isFinite(p.crcl)&&p.crcl<60?'#ffeccc':'';
  document.querySelectorAll('#psex button').forEach(function(b){b.classList.toggle('on',b.dataset.s===PT.sex)});
  document.querySelectorAll('.tg').forEach(function(b){b.classList.toggle('on',!!PT.co[b.dataset.c])});}
 $('#pw').value=PT.w;$('#pa').value=PT.age;$('#pc').value=PT.crea;

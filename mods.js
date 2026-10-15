@@ -4,8 +4,8 @@ function inp(id,lab,unit,ph){return '<label>'+lab+' <input id="'+id+'" inputmode
 function bx(cls,title,body){return '<div class="box '+cls+'">'+(title?'<h3>'+title+'</h3>':'')+body+'</div>';}
 function src(list){return '<ul class="src">'+list.map(function(s){return '<li>'+s+'</li>'}).join('')+'</ul>';}
 function store(id){var k='sk_m_'+id;return{get:function(){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch(e){return{}}},set:function(v){localStorage.setItem(k,JSON.stringify(v))}};}
-function bind(el,id,upd){var s=store(id),v=s.get();el.querySelectorAll('input[id]').forEach(function(i){if(i.type==='checkbox'){i.checked=!!v[i.id];i.onchange=function(){v[i.id]=i.checked;s.set(v);upd()}}else{if(v[i.id]!=null)i.value=v[i.id];i.oninput=function(){v[i.id]=i.value;s.set(v);upd()}}});
- return function(id){var e=el.querySelector('#'+id);return e.type==='checkbox'?e.checked:N(e.value)};}
+function bind(el,id,upd){var s=store(id),v=s.get();el.querySelectorAll('input[id],select[id]').forEach(function(i){if(i.tagName==='SELECT'){if(v[i.id]!=null)i.value=v[i.id];i.onchange=function(){v[i.id]=i.value;s.set(v);upd()}}else if(i.type==='checkbox'){i.checked=!!v[i.id];i.onchange=function(){v[i.id]=i.checked;s.set(v);upd()}}else{if(v[i.id]!=null)i.value=v[i.id];i.oninput=function(){v[i.id]=i.value;s.set(v);upd()}}});
+ return function(id){var e=el.querySelector('#'+id);return e.tagName==='SELECT'?e.value:e.type==='checkbox'?e.checked:N(e.value)};}
 function infoToggle(el,html){var b=el.querySelector('.info'),d=el.querySelector('.infobox');b.onclick=function(){d.hidden=!d.hidden};d.innerHTML=html;}
 // ================= DKA / HHS =================
 var DKA={id:'dka',icon:'🍬',name:'DKA / HHS',render:function(el,X){var S=X.S,mg=S.units==='mgdl',gu=mg?'mg/dl':'mmol/l',uu=mg?'mg/dl':'mmol/l';
@@ -77,12 +77,12 @@ var SET={id:'settings',icon:'⚙️',name:'Ustawienia',render:function(el,X){var
  var sn=el.querySelector('#snd'),vo=el.querySelector('#vol');sn.checked=S.sound;vo.value=S.vol;sn.onchange=function(){X.setS('sound',sn.checked)};vo.oninput=function(){X.setS('vol',+vo.value)};
  el.querySelector('#tst').onclick=function(){X.alarm('test',true);setTimeout(function(){X.alarm('test',false)},2500)};
  el.querySelector('#rst').onclick=function(){if(confirm('Wyczyścić wszystkie dane pacjenta, ustawienia i stany modułów?')){localStorage.clear();sessionStorage.clear();location.reload();}};}};
-var ABOUT={id:'about',icon:'ℹ️',name:'O programie',render:function(el){el.innerHTML='<h2>SOR Kalkulatory</h2><div class="box"><div class="big">Wujek Fido</div><p>Autor: <b>Wujek Fido</b> · wersja 3.1 (2026-10)</p><p>Kalkulatory dla SOR: Pompy SOR, Omdlenie SOR, Stan padaczkowy SOR, DKA/HHS, Elektrolity, Antykoagulacja i odwracanie, Zatorowość płucna, Ostra niewydolność serca, Anafilaksja, Sepsa, Zatrucia, AF, Krwawienie z GI. Działa offline.</p><p><b>Narzędzie pomocnicze, niecertyfikowane (nie jest wyrobem medycznym). Każdą dawkę i decyzję weryfikuje lekarz.</b></p><p class="mut">Kolory: zielony – OK, pomarańczowy – ostrożnie, czerwony – niebezpieczne (lampa + syrena; 🔊 wycisza).</p></div>';}};
+var ABOUT={id:'about',icon:'ℹ️',name:'O programie',render:function(el){el.innerHTML='<h2>SOR Kalkulatory</h2><div class="box"><div class="big">Wujek Fido</div><p>Autor: <b>Wujek Fido</b> · wersja 3.2 (2026-10)</p><p>Kalkulatory dla SOR: Pompy SOR, Omdlenie SOR, Stan padaczkowy SOR, DKA/HHS, Elektrolity, Antykoagulacja i odwracanie, Zatorowość płucna, Ostra niewydolność serca, Anafilaksja, Sepsa, Zatrucia, AF, Krwawienie z GI, Transfuzjologia. Działa offline.</p><p><b>Narzędzie pomocnicze, niecertyfikowane (nie jest wyrobem medycznym). Każdą dawkę i decyzję weryfikuje lekarz.</b></p><p class="mut">Kolory: zielony – OK, pomarańczowy – ostrożnie, czerwony – niebezpieczne (lampa + syrena; 🔊 wycisza).</p></div>';}};
 var soon=function(id,icon,name){return{id:id,icon:icon,name:name,soon:true,render:function(el){el.innerHTML='<h2>'+name+'</h2><div class="box orange">Moduł w przygotowaniu – kolejna wersja.</div>'}}};
 window.SKM={util:{inp:inp,bx:bx,src:src,store:store,bind:bind,infoToggle:infoToggle,h:h},list:[
  {id:'pompy',icon:'💉',name:'Pompy SOR',frame:'mod/pompy/index.html'},
  {id:'omdl',icon:'🚦',name:'Omdlenie SOR',frame:'mod/omdlenie/index.html'},
  {id:'se',icon:'⚡',name:'Stan padaczkowy',frame:'mod/se/index.html',hide:'.wrow,.tg,#crr,.disc{display:none!important}'},
  DKA,EL,
- soon('acoag','🩸','Antykoagulacja'),soon('pe','🫁','Zatorowość płucna'),soon('ahf','❤️','Ostra niewydolność serca'),soon('ana','🐝','Anafilaksja'),soon('sepsis','🦠','Sepsa'),soon('tox','☠️','Zatrucia'),soon('af','💓','AF'),soon('gib','🩸','Krwawienie z GI'),
+ soon('acoag','🩸','Antykoagulacja'),soon('pe','🫁','Zatorowość płucna'),soon('ahf','❤️','Ostra niewydolność serca'),soon('ana','🐝','Anafilaksja'),soon('sepsis','🦠','Sepsa'),soon('tox','☠️','Zatrucia'),soon('af','💓','AF'),soon('gib','🩸','Krwawienie z GI'),soon('transf','🅰️','Transfuzjologia'),
  {sep:true},SET,ABOUT]};})();

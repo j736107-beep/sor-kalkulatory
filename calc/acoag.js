@@ -5,7 +5,7 @@ var SRC={ACCP:'ACCP/CHEST 2012 (Garcia) – UFH wg masy (nomogram Raschke)',ESCA
 function nz(x){return typeof x==='number'&&isFinite(x);}
 var HEP={units:25000,ml:50}; // 25 000 j. w 50 ml = 500 j./ml (DO WERYFIKACJI – protokół szpitala)
 function ufh(w,ind){if(!(w>0))return null;var c=HEP.units/HEP.ml,o;
- if(ind==='acs'){var b=Math.min(60*w,4000),r=Math.min(12*w,1000);o={bolus:b,rate:r,bolusCap:60*w>4000,rateCap:12*w>1000,txt:'ACS: 60 j./kg (maks. 4000) + 12 j./kg/h (maks. 1000 j./h)'};}
+ if(ind==='acs'){var b=Math.min(60*w,4000),r=Math.min(12*w,1000);o={bolus:b,rate:r,bolusCap:60*w>4000,rateCap:12*w>1000,txt:'ACS bez PCI (ACC/AHA): 60 j./kg (maks. 4000) + 12 j./kg/h (maks. 1000 j./h); w PCI wg ESC 70–100 j./kg'};}
  else o={bolus:80*w,rate:18*w,txt:'ŻChZZ/ZP: 80 j./kg + 18 j./kg/h'};
  o.mlh=o.rate/c;o.conc=c;return o;}
 // Enoksaparyna (ChPL Clexane)
