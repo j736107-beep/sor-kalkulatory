@@ -84,6 +84,7 @@ window.SKM={util:{inp:inp,bx:bx,src:src,store:store,bind:bind,infoToggle:infoTog
  {id:'pompy',icon:'💉',name:'Pompy SOR',frame:'mod/pompy/index.html',red:'.out.bad,.rng.bad,input.bad,.err'},
  {id:'omdl',icon:'🚦',name:'Omdlenie SOR',frame:'mod/omdlenie/index.html'},
  {id:'se',icon:'⚡',name:'Stan padaczkowy',frame:'mod/se/index.html',red:'#res .mx,input.bad',hide:'.wrow,.tg,#crr,.disc{display:none!important}'},
+ {id:'trop',icon:'🫀',name:'Troponina / OZW',frame:'mod/troponina/index.html',red:'#light.L-red',hide:'#mute,#next{display:none!important}'},
  DKA,EL,
  soon('acoag','🩸','Antykoagulacja'),soon('pe','🫁','Zatorowość płucna'),soon('ahf','❤️','Ostra niewydolność serca'),soon('ana','🐝','Anafilaksja'),soon('sepsis','🦠','Sepsa'),soon('tox','☠️','Zatrucia'),soon('af','💓','AF'),soon('gib','🩸','Krwawienie z GI'),soon('transf','🅰️','Transfuzjologia'),
  {sep:true},SET,ABOUT]};})();
