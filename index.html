@@ -1,0 +1,19 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>SOR Kalkulatory — Wujek Fido</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' app: file: data:">
+<link rel="icon" href="icon.png"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#7b3fe4"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="shell.css"></head><body>
+<div id="disc" class="ov"><div class="dlg"><h2>SOR Kalkulatory</h2><p class="by">autor: Wujek Fido</p><p><b>Narzędzie pomocnicze, niecertyfikowane.</b><br>Każdą dawkę i decyzję weryfikuje lekarz.</p><button id="discOk" class="big">Rozumiem</button></div></div>
+<header id="top"><div class="brand">SOR Kalkulatory <small>· Wujek Fido</small></div>
+<div id="pbar">
+ <label>Masa <input id="pw" inputmode="decimal" placeholder="kg"></label>
+ <label>Wiek <input id="pa" inputmode="numeric" placeholder="lat"></label>
+ <span class="seg" id="psex"><button data-s="m">M</button><button data-s="f">K</button></span>
+ <label>Kreat. <input id="pc" inputmode="decimal"><span id="pcu"></span></label>
+ <span id="pcr" class="pill">CrCl —</span>
+ <span class="tgs"><button class="tg" data-c="liver">wątroba</button><button class="tg" data-c="renal">nerki</button><button class="tg" data-c="heart">serce</button><button class="tg" data-c="preg">ciąża</button></span>
+</div>
+<div id="lamp" title="Alarm"></div><button id="mute" title="Wycisz">🔊</button></header>
+<div id="wrap"><nav id="side"></nav><main id="main"></main></div>
+<audio id="siren" src="siren.wav" preload="auto"></audio>
+<script src="calc/core.js"></script><script src="calc/dka.js"></script><script src="calc/elyte.js"></script><script src="calc/acoag.js"></script><script src="calc/pe.js"></script><script src="calc/ahf.js"></script><script src="calc/batch3.js"></script>
+<script src="mods.js"></script><script src="mods2.js"></script><script src="mods3.js"></script><script src="shell.js"></script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+document.addEventListener('pointerdown',function u(){var a=document.getElementById('siren');try{a.muted=true;var p=a.play();(p&&p.then?p:Promise.resolve()).then(function(){a.pause();a.currentTime=0;a.muted=false}).catch(function(){a.muted=false})}catch(e){}document.removeEventListener('pointerdown',u)},{once:true});</script></body></html>
