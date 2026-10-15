@@ -1,0 +1,67 @@
+(function(){var C=SK.core,F=C.fmt,U=SKM.util,inp=U.inp,bx=U.bx,src=U.src,chk=U.chk,tabbed=U.tabbed,N=SK.neuro;
+function dw(t){return ' <span class="dw">'+(t||'DO WERYFIKACJI')+'</span>';}
+function sl(t){return ' <span class="mut">['+t+']</span>';}
+function sel(id,lab,opts){return '<label>'+lab+' <select id="'+id+'">'+opts.map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select></label>';}
+function lnk(id,t){return '<button class="tg" onclick="SKS.show(\''+id+'\')">→ '+t+'</button>';}
+function lnk2(t,x){return '<button class="tg" onclick="document.querySelector(&quot;#main .tabs [data-t='+t+']&quot;).click()">→ '+x+'</button>';}
+var MOT={'5a':1,'5b':1,'6a':1,'6b':1,'7':1};
+var NEU=tabbed({id:'neuro',icon:'🧠',name:'Neurologia'},'Neurologia – udar',[['a','Algorytm: podejrzenie udaru'],['n','NIHSS'],['t','Tromboliza'],['i','Krwotok (ICH)'],['p','Rokowanie / TIA / GCS'],['d','Otępienie / majaczenie']],
+ function(t){
+  if(t==='a'){var G=function(h,x){return '<div style="width:100%"><b>'+h+'</b> '+x+'</div>'};return G('Czas',inp('h','od ostatniego widzenia zdrowego','h')+chk('wake','wake-up')+chk('unk','nieznany'))+
+   G('Objawy',chk('foc','niedowład/czucie')+chk('aph','afazja')+chk('neg','zaniedbywanie')+chk('gaze','zwrot gałek')+chk('vf','pole widzenia')+chk('post','zawroty/ataksja/podwójne/dyzartria/dysfagia')+chk('loc','↓ przytomność')+chk('head','nagły najsilniejszy ból głowy (szczyt ≤1 h)')+chk('hdp','ból głowy narastający')+chk('seiz','napad na początku')+chk('neck','sztywność/ból karku'))+
+   G('LAMS / NIHSS',inp('race','RACE','0–9')+inp('nih','NIHSS','')+sel('hints','HINTS',[['','—'],['central','centralny'],['peripheral','obwodowy']]))+
+   G('Ottawa SAH',chk('ex','przy wysiłku')+chk('inst','piorunujący')+chk('flex','ogr. zgięcia karku'))+
+   G('CVT',chk('cy','młoda kobieta')+chk('coc','antykoncepcja/ciąża/połóg')+chk('cthr','trombofilia')+chk('cpap','tarcza zastoinowa')+chk('cinf','infekcja ucha/zatok'))+
+   G('Guz',chk('tprog','narastanie dni/tyg.')+chk('tca','nowotwór')+chk('tmorn','ból głowy rano')+chk('thern','objawy wgłobienia'))+
+   G('Leki / parametry',sel('ac','Antykoagulant',[['','brak'],['vka','VKA'],['dabi','dabigatran'],['xa','anty-Xa'],['lmwh','HDCz']])+inp('ach','ost. dawka','h temu')+inp('glu','Glukoza',SKS.S.units==='mgdl'?'mg/dl':'mmol/l')+inp('sbp','SBP','')+inp('dbp','DBP','')+chk('mim','możliwy mimik (migrena, napad, psych., sepsa)'));}
+  if(t==='n')return '<div class="nih">'+N.NIH.map(function(it){var o=it[2].map(function(d,k){return [k,k+' – '+d]});if(MOT[it[0]])o.push(['UN','UN – nie do oceny']);return sel('n'+it[0],it[1],o)}).join('')+'</div>';
+  if(t==='t')return inp('h','Od zachorowania','h')+chk('wake','wake-up / nieznany czas')+chk('mm','niedopasowanie DWI-FLAIR / perfuzji')+'<br>'+
+   sel('ph','RR',[['pre','przed trombolizą'],['post','po trombolizie (24 h)']])+inp('sbp','SBP','mmHg')+inp('dbp','DBP','mmHg')+inp('glu','Glukoza',SKS.S.units==='mgdl'?'mg/dl':'mmol/l')+
+   '<div style="width:100%"><b class="r">Przeciwwskazania bezwzględne</b><br>'+N.CI_ABS.map(function(c){return chk('a_'+c[0],c[1])}).join(' ')+'</div><div style="width:100%"><b class="o">Względne / ostrożnie</b><br>'+N.CI_REL.map(function(c){return chk('r_'+c[0],c[1])}).join(' ')+'</div>';
+  if(t==='i')return inp('gcs','GCS','3–15')+inp('vol','Objętość','ml')+'<span class="mut">lub ABC/2:</span>'+inp('ca','A','cm')+inp('cb','B','cm')+inp('cc','C','cm')+chk('ivh','krew w komorach (IVH)')+chk('inf','podnamiotowy')+inp('sbp','SBP','mmHg')+chk('ac','leczenie przeciwkrzepliwe');
+  if(t==='p')return sel('mrs','mRS',N.MRS.map(function(m,k){return [k,m]}))+'<br><b>ABCD² (TIA)</b> '+inp('sbp','SBP','mmHg')+inp('dbp','DBP','mmHg')+sel('clin','Objawy',[['','inne'],['s','zab. mowy bez niedowładu'],['w','niedowład jednostronny']])+inp('dur','Czas trwania','min')+chk('dm','cukrzyca')+
+   '<br><b>GCS</b> '+sel('ge','Oczy',[['','—'],[4,'4 spontanicznie'],[3,'3 na głos'],[2,'2 na ból'],[1,'1 brak']])+sel('gv','Słowna',[['','—'],[5,'5 zorientowany'],[4,'4 splątany'],[3,'3 nieadekwatne słowa'],[2,'2 dźwięki'],[1,'1 brak']])+sel('gm','Ruchowa',[['','—'],[6,'6 spełnia polecenia'],[5,'5 lokalizuje ból'],[4,'4 ucieka od bólu'],[3,'3 zgięciowa'],[2,'2 wyprostna'],[1,'1 brak']]);
+  return '<b>AMTS</b> '+inp('amts','Punkty','0–10')+' <b>Mini-Cog</b> '+sel('mcr','Odtworzone słowa',[['','—'],[0,'0'],[1,'1'],[2,'2'],[3,'3']])+chk('mcc','zegar prawidłowy')+
+   '<br><b>MoCA</b> '+inp('moca','Punkty','0–30')+chk('edu','wykształcenie ≤12 lat')+' <b>MMSE</b> '+inp('mmse','Wynik','0–30')+sel('cdr','CDR globalnie',[['','—']].concat(N.CDR))+
+   '<br><b>4AT</b> '+chk('fa','zaburzona czujność')+sel('fm','AMT4',[[0,'0 bez błędów'],[1,'1 błąd'],[2,'≥2 / nie do oceny']])+sel('ft','Miesiące wstecz',[[0,'≥7 poprawnie'],[1,'<7 / odmowa'],[2,'nie do oceny']])+chk('fc','ostra zmiana / fluktuacje');},
+ function(t,g,P,X){var w=P.w,H='',lvl='ok';
+  if(t==='a'){var gm=isFinite(g('glu'))?(SKS.S.units==='mgdl'?g('glu'):g('glu')*18.016):NaN;
+   var r=N.stroke({h:g('h'),wake:g('wake'),unk:g('unk'),s:{foc:g('foc'),aph:g('aph'),neg:g('neg'),gaze:g('gaze'),vf:g('vf'),post:g('post'),loc:g('loc'),head:g('head'),hdp:g('hdp'),seiz:g('seiz'),neck:g('neck')},o:{ex:g('ex'),inst:g('inst'),flex:g('flex')},
+    cvt:{young:g('cy'),oc:g('coc'),thr:g('cthr'),pap:g('cpap'),inf:g('cinf')},tu:{prog:g('tprog'),ca:g('tca'),morn:g('tmorn'),hern:g('thern')},ac:g('ac'),acH:g('ach'),gluMg:gm,sbp:g('sbp'),dbp:g('dbp'),nihss:g('nih'),race:g('race'),hints:g('hints'),mimic:g('mim'),sex:P.sex,age:P.age});
+   H='<h3>WNIOSKI – co zlecić teraz</h3>'+r.list.map(function(x){return bx(x.lvl,x.t+(x.s?sl(x.s):''),x.d)}).join('');
+   if(r.f.code)H+='<div>'+lnk2('t','Tromboliza')+lnk2('n','NIHSS')+'</div>';if(g('ac'))H+=lnk('acoag','Antykoagulacja');
+   return{H:H,lvl:r.lvl==='red'?'red':'ok'};}
+  if(t==='n'){var v={};N.NIH.forEach(function(it){var e=document.getElementById('n'+it[0]);v[it[0]]=e?e.value:''});var r=N.nihss(v);
+   H=bx(r.lvl,'NIHSS'+sl('NINDS / AHA'),'<span class="big">'+r.score+' / 42</span> – '+r.sev);}
+  if(t==='t'){var wi=N.window(g('h'),g('wake'),g('mm'));H+=bx(wi.lvl,'Okno czasowe'+sl('ESO 2021 / AHA 2019'),'<b>'+wi.txt+'</b>');
+   var cv={};N.CI_ABS.concat(N.CI_REL).forEach(function(c){cv[c[0]]=g((N.CI_ABS.indexOf(c)>=0?'a_':'r_')+c[0])});var ci=N.ci(cv);
+   if(ci.abs.length)H+=bx('red','PRZECIWWSKAZANIE'+sl('AHA 2019 / ChPL'),'<div class="r">⚠ '+ci.abs.join('<br>⚠ ')+'</div>');if(ci.rel.length)H+=bx('orange','Ostrożnie'+sl('AHA 2019 / ESO 2021'),ci.rel.join(', '));
+   var b=N.bp(g('sbp'),g('dbp'),g('ph'));if(b.lvl)H+=bx(b.lvl,'RR '+(g('ph')==='post'?'po':'przed')+' – cel <'+b.lim[0]+'/'+b.lim[1]+sl('AHA 2019 / ESO 2021'),'<span class="big">'+F(g('sbp'),0)+'/'+F(g('dbp'),0)+'</span>'+(b.hi?'<div class="r">⚠ '+(g('ph')==='post'?'Obniż RR (urapidil/labetalol) – kontrola co 15 min':'Obniż RR przed podaniem – bez obniżenia NIE podawaj')+'</div>':''));
+   var gm=SKS.S.units==='mgdl'?g('glu'):g('glu')*18.016,gl=N.glu(gm);if(gl.lvl)H+=bx(gl.lvl,'Glikemia'+sl('AHA 2019 / ChPL'),gl.txt);
+   var bad=wi.lvl==='red'||ci.abs.length||!wi.lvl,pend=b.hi&&g('ph')!=='post'||gl.lvl==='red';
+   if(bad)H+=bx('','Leki trombolityczne',wi.lvl?'Brak wskazań wg wprowadzonych danych.':'Uzupełnij czas zachorowania.');
+   else if(!(w>0))H+=bx('orange','','Podaj masę ciała w pasku pacjenta.');
+   else{var a=N.alteplase(w),k=N.tenecteplase(w),c=pend?'orange':'ok',pn=pend?'<div class="o">Dopiero po wyrównaniu RR / glikemii</div>':'';
+    H+=bx(c,'Alteplaza (Actilyse 1 mg/ml) 0,9 mg/kg, maks. 90 mg'+sl('ChPL / AHA / ESO'),'<span class="big">'+F(a.tot,1)+' mg = '+F(a.tot,1)+' ml</span><div>Bolus 10%: <b>'+F(a.bol,1)+' ml</b> w 1 min · reszta <b>'+F(a.inf,1)+' ml w 60 min = '+F(a.mlh,1)+' ml/h</b></div>'+(a.capped?'<div class="o">Masa >100 kg → dawka maks.</div>':'')+pn);
+    H+=bx(c,'Tenekteplaza (Metalyse 5 mg/ml) 0,25 mg/kg, maks. 25 mg'+sl('ESO 2023 / AHA 2026 / ChPL'),'<span class="big">'+F(k.mg,1)+' mg = '+F(k.ml,1)+' ml</span> jednorazowy bolus 5–10 s'+(k.capped?'<div class="o">Masa >100 kg → dawka maks.</div>':'')+pn+dw('preparat 25 mg/5 ml w szpitalu'));}
+   lvl=(ci.abs.length||b.hi||gl.lvl==='red')?'red':'ok';}
+  if(t==='i'){var vol=isFinite(g('vol'))?g('vol'):N.abc2(g('ca'),g('cb'),g('cc'));var s=N.ichScore({gcs:g('gcs'),vol:vol,ivh:g('ivh'),infra:g('inf'),age:P.age});
+   H+=bx(s.lvl,'ICH score'+sl('Hemphill 2001'),'<span class="big">'+s.score+' / 6</span> – śmiertelność 30 dni ~'+s.mort+'%'+(isFinite(vol)?'<div class="mut">objętość '+F(vol,0)+' ml'+(isFinite(P.age)?' · wiek '+P.age:' · podaj wiek w pasku')+'</div>':'')+'<div class="mut">Nie służy do ograniczania leczenia</div>');
+   var bp=N.ichBP(g('sbp'));if(bp.lvl)H+=bx(bp.lvl,'RR w ICH – cel SBP ~140'+sl('AHA 2022 / ESO 2021'),'<b>'+bp.txt+'</b>');
+   if(g('ac'))H+=bx('red','Odwróć antykoagulację natychmiast'+sl('AHA 2022 / ESO 2019'),'VKA → PCC + wit. K · dabigatran → idarucyzumab · anty-Xa → andeksanet/PCC<div>'+lnk('acoag','Antykoagulacja – dawki')+'</div>');
+   lvl=bp.lvl==='red'||g('ac')?'red':'ok';}
+  if(t==='p'){var m=g('mrs');H+=bx(m>=3?'orange':'ok','mRS'+sl('van Swieten 1988'),'<b>'+N.MRS[m]+'</b>');
+   var a2=N.abcd2({age:P.age,sbp:g('sbp'),dbp:g('dbp'),clin:g('clin'),dur:g('dur'),dm:g('dm')});H+=bx(a2.lvl,'ABCD²'+sl('Johnston 2007'),'<span class="big">'+a2.score+' / 7</span> – ryzyko '+a2.risk+(isFinite(P.age)?'':'<div class="o">Podaj wiek w pasku</div>')+'<div class="mut">Diagnostyka pilna niezależnie od wyniku (AHA/ESO)</div>');
+   var gc=N.gcs(+g('ge')||NaN,+g('gv')||NaN,+g('gm')||NaN);H+=gc?bx(gc.lvl,'GCS'+sl('Teasdale 1974'),'<span class="big">'+gc.score+'</span> – '+gc.txt):bx('','GCS','Wybierz E, V, M.');
+   H+=bx('','CHA₂DS₂-VA / VASc',lnk('af','moduł AF'));lvl=gc&&gc.lvl==='red'?'red':'ok';}
+  if(t==='d'){var r1=N.amts(g('amts')),mcr=document.getElementById('mcr').value,r2=mcr===''?null:N.minicog(+mcr,g('mcc')),r3=N.moca(g('moca'),g('edu')),r5=N.mmse(g('mmse')),cd=document.getElementById('cdr').value,r4=N.fourAT({alert:g('fa'),amt4:+g('fm'),att:+g('ft'),acute:g('fc')});
+   H+=bx(r4.lvl,'4AT – majaczenie'+sl('Bellelli 2014'),'<span class="big">'+r4.score+' / 12</span> – '+r4.txt);
+   if(r1)H+=bx(r1.lvl,'AMTS'+sl('Hodkinson 1972'),'<span class="big">'+r1.score+' / 10</span> – '+(r1.abn?'nieprawidłowy (≤6)':'prawidłowy'));
+   if(r2)H+=bx(r2.lvl,'Mini-Cog'+sl('Borson 2000'),'<span class="big">'+r2.score+' / 5</span> – '+(r2.pos?'dodatni (<3) – dalsza ocena':'ujemny'));
+   if(r3)H+=bx(r3.lvl,'MoCA'+sl('Nasreddine 2005'),'<span class="big">'+r3.score+' / 30</span>'+(r3.score!==r3.raw?' (surowy '+r3.raw+' +1)':'')+' – '+(r3.abn?'poniżej normy (<26)':'w normie (≥26)'));
+   if(r5)H+=bx(r5.lvl,'MMSE'+sl('Folstein 1975'),'<span class="big">'+r5.score+' / 30</span> – '+r5.cat+'<div class="mut">© PAR – tylko wpis wyniku z licencjonowanego formularza</div>');
+   if(cd)H+=bx(+cd>=1?'orange':'ok','CDR'+sl('Morris 1993'),'<b>'+N.CDR.filter(function(c){return c[0]===cd})[0][1]+'</b>');
+   H+=bx('','','Skrining ≠ rozpoznanie. Przy majaczeniu testy otępienne niewiarygodne.');}
+  return{H:H,lvl:lvl};},
+ '<h3>Źródła</h3>'+src(N.SRC)+'<p>'+dw()+': stężenie tenekteplazy (Metalyse 25 mg/5 ml vs 50 mg/10 ml) i protokół szpitala; okno 4,5–9 h / wake-up wg kwalifikacji neurologa; progi Mini-Cog (<3) i AMTS (≤6) różnią się w literaturze.</p>');
+var L=SKM.list;for(var i=0;i<L.length;i++)if(L[i].id==='transf'){L.splice(i+1,0,NEU);break;}})();

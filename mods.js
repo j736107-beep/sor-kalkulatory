@@ -49,6 +49,7 @@ var EL={id:'elyte',icon:'⚗️',name:'Elektrolity',render:function(el,X){var mg
   function upd(){var P=X.P(),H='',lvl='ok';
    if(tab==='na'){var hr=g('hr')||P.co.liver;var o=SK.elyte.hypoNa({w:P.w,na:g('na'),sex:P.sex,age:P.age,severe:g('sev'),highRisk:hr,target:g('tg')});
     if(!o)H=bx('orange','','Podaj masę (pasek) i Na⁺.');else if(o.noHypo)H=bx('ok','','Na⁺ ≥135 – brak hiponatremii, brak wskazań do korekcji.');else{lvl=o.lvl;
+     if(o.lvl!=='ok'&&!o.warn.length&&!g('sev'))H+=bx(o.lvl,'','<span class="big">Na⁺ '+F(g('na'),0)+' – hiponatremia '+(o.lvl==='red'?'ciężka':'umiarkowana')+'</span>');
      if(g('sev'))H+=bx('red','Objawy ciężkie','<span class="big">3% NaCl 150 ml w 20 min</span><div>Kontrola Na po 20 min, powtórz do 2× lub do wzrostu o 5 mmol/l</div><div class="mut">szac. wzrost po 150 ml: '+F(o.bolusRise,1)+' mmol/l</div>');
      H+=bx(o.lvl==='red'&&o.warn.length?'red':'ok','Limit korekcji','<span class="big">≤ '+o.limit+' mmol/l / 24 h</span>'+(o.limit===8?' <span class="o">(wysokie ryzyko ODS)</span>':'')+' · potem ≤8 / każde 24 h'+(o.warn.length?'<div class="r">⚠ '+o.warn.join('<br>')+'</div>':''));
      H+=bx('','Adrogué–Madias (TBW '+F(o.tbw,1)+' l)','1 l 3% NaCl: <b>+'+F(o.d3,1)+'</b> mmol/l · 1 l 0,9% NaCl: <b>+'+F(o.d09,1)+'</b> mmol/l<div>Plan +'+F(o.target,1)+' mmol/l/24 h → 3% NaCl <b>'+F(o.vol3,0)+' ml</b> = <b>'+F(o.mlh3,1)+' ml/h</b></div>');}}
@@ -77,12 +78,12 @@ var SET={id:'settings',icon:'⚙️',name:'Ustawienia',render:function(el,X){var
  var sn=el.querySelector('#snd'),vo=el.querySelector('#vol');sn.checked=S.sound;vo.value=S.vol;sn.onchange=function(){X.setS('sound',sn.checked)};vo.oninput=function(){X.setS('vol',+vo.value)};
  el.querySelector('#tst').onclick=function(){X.alarm('test',true);setTimeout(function(){X.alarm('test',false)},2500)};
  el.querySelector('#rst').onclick=function(){if(confirm('Wyczyścić wszystkie dane pacjenta, ustawienia i stany modułów?')){localStorage.clear();sessionStorage.clear();location.reload();}};}};
-var ABOUT={id:'about',icon:'ℹ️',name:'O programie',render:function(el){el.innerHTML='<h2>SOR Kalkulatory</h2><div class="box"><div class="big">Wujek Fido</div><p>Autor: <b>Wujek Fido</b> · wersja 3.2 (2026-10)</p><p>Kalkulatory dla SOR: Pompy SOR, Omdlenie SOR, Stan padaczkowy SOR, DKA/HHS, Elektrolity, Antykoagulacja i odwracanie, Zatorowość płucna, Ostra niewydolność serca, Anafilaksja, Sepsa, Zatrucia, AF, Krwawienie z GI, Transfuzjologia. Działa offline.</p><p><b>Narzędzie pomocnicze, niecertyfikowane (nie jest wyrobem medycznym). Każdą dawkę i decyzję weryfikuje lekarz.</b></p><p class="mut">Kolory: zielony – OK, pomarańczowy – ostrożnie, czerwony – niebezpieczne (lampa + syrena; 🔊 wycisza).</p></div>';}};
+var ABOUT={id:'about',icon:'ℹ️',name:'O programie',render:function(el){el.innerHTML='<h2>SOR Kalkulatory</h2><div class="box"><div class="big">Wujek Fido</div><p>Autor: <b>Wujek Fido</b> · wersja 3.5 (2026-10)</p><p>Kalkulatory dla SOR: Pompy SOR, Omdlenie SOR, Stan padaczkowy SOR, DKA/HHS, Elektrolity, Antykoagulacja i odwracanie, Zatorowość płucna, Ostra niewydolność serca, Anafilaksja, Sepsa, Zatrucia, AF, Krwawienie z GI, Transfuzjologia, Neurologia (algorytm podejrzenia udaru, NIHSS, tromboliza, ICH, TIA, otępienie/majaczenie). Działa offline.</p><p><b>Narzędzie pomocnicze, niecertyfikowane (nie jest wyrobem medycznym). Każdą dawkę i decyzję weryfikuje lekarz.</b></p><p class="mut">Kolory: zielony – OK, pomarańczowy – ostrożnie, czerwony – niebezpieczne (lampa + syrena; 🔊 wycisza).</p></div>';}};
 var soon=function(id,icon,name){return{id:id,icon:icon,name:name,soon:true,render:function(el){el.innerHTML='<h2>'+name+'</h2><div class="box orange">Moduł w przygotowaniu – kolejna wersja.</div>'}}};
 window.SKM={util:{inp:inp,bx:bx,src:src,store:store,bind:bind,infoToggle:infoToggle,h:h},list:[
- {id:'pompy',icon:'💉',name:'Pompy SOR',frame:'mod/pompy/index.html'},
+ {id:'pompy',icon:'💉',name:'Pompy SOR',frame:'mod/pompy/index.html',red:'.out.bad,.rng.bad,input.bad,.err'},
  {id:'omdl',icon:'🚦',name:'Omdlenie SOR',frame:'mod/omdlenie/index.html'},
- {id:'se',icon:'⚡',name:'Stan padaczkowy',frame:'mod/se/index.html',hide:'.wrow,.tg,#crr,.disc{display:none!important}'},
+ {id:'se',icon:'⚡',name:'Stan padaczkowy',frame:'mod/se/index.html',red:'#res .mx,input.bad',hide:'.wrow,.tg,#crr,.disc{display:none!important}'},
  DKA,EL,
  soon('acoag','🩸','Antykoagulacja'),soon('pe','🫁','Zatorowość płucna'),soon('ahf','❤️','Ostra niewydolność serca'),soon('ana','🐝','Anafilaksja'),soon('sepsis','🦠','Sepsa'),soon('tox','☠️','Zatrucia'),soon('af','💓','AF'),soon('gib','🩸','Krwawienie z GI'),soon('transf','🅰️','Transfuzjologia'),
  {sep:true},SET,ABOUT]};})();

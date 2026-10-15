@@ -4,7 +4,7 @@ function tabbed(mod,title,tabs,form,calc,info){return {id:mod.id,icon:mod.icon,n
  function draw(){el.innerHTML='<button class="info">ℹ</button><h2>'+title+'</h2>'+(tabs.length>1?'<div class="tabs">'+tabs.map(function(t){return '<button data-t="'+t[0]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</button>'}).join('')+'</div>':'')+'<div id="f"></div><div id="out"></div><div class="infobox" hidden></div><div class="disc">Narzędzie pomocnicze, niecertyfikowane. Każdą dawkę weryfikuje lekarz.</div>';
   el.querySelectorAll('.tabs button').forEach(function(b){b.onclick=function(){tab=b.dataset.t;store(mod.id+'_tab').set({t:tab});draw()}});
   infoToggle(el,info);var f=el.querySelector('#f');f.innerHTML='<div class="row">'+form(tab)+'</div>';var g=bind(f,mod.id+'_'+tab,upd);self.update=upd;
-  function upd(){var r=calc(tab,g,X.P(),X);el.querySelector('#out').innerHTML=r.H;X.alarm(mod.id,r.lvl==='red');}upd();}
+  function upd(){var r=calc(tab,g,X.P(),X);el.querySelector('#out').innerHTML=r.H;X.alarm(mod.id,r.lvl==='red'||r.H.indexOf('class="box red"')>=0);}upd();}
  draw();}};}
 SKM.util.tabbed=tabbed;SKM.util.chk=chk;
 // ============ ANTYKOAGULACJA ============

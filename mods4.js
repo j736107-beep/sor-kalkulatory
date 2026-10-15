@@ -16,7 +16,7 @@ var TR=tabbed({id:'transf',icon:'🅰️',name:'Transfuzjologia'},'Transfuzjolog
    H+=bx('','','Próba zgodności i kontrola przyłóżkowa AB0 – wg rozporządzenia MZ.');}
   if(t==='d'){var th=T.threshold(g('ctx')),hb=g('hb'),u=T.rbcUnits(hb,g('hbt'));
    if(!isFinite(hb))H+=bx('orange','KKCz','Podaj Hb.');else{var need=hb<th.t||(g('ctx')==='acs'&&hb<=8);lvl=hb<6?'red':need?'orange':'ok';
-    H+=bx(need?'orange':'ok','KKCz – próg '+th.t+' g/dl',th.txt+(th.dw?dw():'')+'<div>'+(need?(u>0?'<span class="big">'+u+' j. KKCz</span> (1 j. ≈ +1 g/dl u ~70 kg; przetaczaj po 1 j. i oceniaj)':'Podaj Hb docelowe'):'<b>Powyżej progu – brak wskazań przy stabilnym pacjencie</b>')+'</div>');}
+    H+=bx(hb<6?'red':need?'orange':'ok','KKCz – próg '+th.t+' g/dl',th.txt+(th.dw?dw():'')+'<div>'+(need?(u>0?'<span class="big">'+u+' j. KKCz</span> (1 j. ≈ +1 g/dl u ~70 kg; przetaczaj po 1 j. i oceniaj)':'Podaj Hb docelowe'):'<b>Powyżej progu – brak wskazań przy stabilnym pacjencie</b>')+'</div>');}
    var f=T.ffp(w);H+=bx('','Osocze (FFP)',!g('coag')?'Brak wskazań – osocze tylko przy krwawieniu z koagulopatią':f?'<span class="big">'+F(f.ml,0)+' ml</span> (15 ml/kg) – tylko przy krwawieniu z koagulopatią'+dw('objętość j. FFP w PL'):'Podaj masę ciała');
    var fb=T.fib(w,g('fib'));if(isFinite(g('fib')))H+=bx(fb.need?'orange':'ok','Fibrynogen '+F(g('fib'),1)+' g/l',fb.need?(w>0?'Koncentrat fibrynogenu <span class="big">'+F(fb.concLo,1)+'–'+F(fb.concHi,1)+' g</span> (25–50 mg/kg, ESA 2023) lub krioprecypitat'+dw('dawka krioprecypitatu PL'):'Podaj masę'):'≥1,5 g/l – bez suplementacji');
    var p=T.plt(g('plt'),g('pctx'));if(isFinite(g('plt')))H+=bx(p.need?'orange':'ok','KKP – próg '+p.t,p.need?'<span class="big">'+p.dose+'</span>':'Powyżej progu – brak wskazań');}

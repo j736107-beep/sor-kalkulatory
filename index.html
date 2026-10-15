@@ -14,6 +14,6 @@
 <div id="lamp" title="Alarm"></div><button id="mute" title="Wycisz">🔊</button></header>
 <div id="wrap"><nav id="side"></nav><main id="main"></main></div>
 <audio id="siren" src="siren.wav" preload="auto"></audio>
-<script src="calc/core.js"></script><script src="calc/dka.js"></script><script src="calc/elyte.js"></script><script src="calc/acoag.js"></script><script src="calc/pe.js"></script><script src="calc/ahf.js"></script><script src="calc/batch3.js"></script><script src="calc/transf.js"></script>
-<script src="mods.js"></script><script src="mods2.js"></script><script src="mods3.js"></script><script src="mods4.js"></script><script src="shell.js"></script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+<script src="calc/core.js"></script><script src="calc/dka.js"></script><script src="calc/elyte.js"></script><script src="calc/acoag.js"></script><script src="calc/pe.js"></script><script src="calc/ahf.js"></script><script src="calc/batch3.js"></script><script src="calc/transf.js"></script><script src="calc/neuro.js"></script>
+<script src="mods.js"></script><script src="mods2.js"></script><script src="mods3.js"></script><script src="mods4.js"></script><script src="mods5.js"></script><script src="shell.js"></script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 document.addEventListener('pointerdown',function u(){var a=document.getElementById('siren');try{a.muted=true;var p=a.play();(p&&p.then?p:Promise.resolve()).then(function(){a.pause();a.currentTime=0;a.muted=false}).catch(function(){a.muted=false})}catch(e){}document.removeEventListener('pointerdown',u)},{once:true});</script></body></html>

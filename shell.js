@@ -6,11 +6,21 @@ function saveS(){localStorage.setItem('sk_settings',JSON.stringify(S))}function 
 window.SKS={get S(){return S},P:function(){var p=C.patient({w:PT.w,age:PT.age,sex:PT.sex,crea:PT.crea,creaU:S.crea,co:PT.co});return p;},alarm:alarm,saveS:saveS,DEF:DEF,setS:function(k,v){S[k]=v;saveS();applyS();}};
 // ---------- alarm: czerwona lampa + syrena ----------
 var siren=$('#siren');
-function alarm(key,on){if(on)alarms[key]=1;else delete alarms[key];var any=Object.keys(alarms).length>0;$('#lamp').classList.toggle('on',any);
- if(any&&on&&S.sound&&!muted){try{siren.volume=S.vol;siren.currentTime=0;var p=siren.play();if(p&&p.catch)p.catch(function(){})}catch(e){}}
- if(!any){try{siren.pause()}catch(e){}}}
-$('#mute').onclick=function(){muted=!muted;this.textContent=muted?'🔇':'🔊';if(muted)try{siren.pause()}catch(e){}};
-$('#lamp').onclick=function(){try{siren.pause()}catch(e){}};
+// syrena WebAudio (niezależna od pliku, odblokowana pierwszym kliknięciem/klawiszem)
+var AC=null,osc=null,lfo=null,gn=null,stopT=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();}catch(e){}return AC}
+['pointerdown','keydown','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){ac()},{passive:true})});
+function sirenStop(){try{if(osc){osc.stop();osc=null}if(lfo){lfo.stop();lfo=null}}catch(e){}clearTimeout(stopT);try{siren.pause()}catch(e){}}
+function sirenPlay(){var c=ac();if(!c)return;sirenStop();try{
+ gn=c.createGain();gn.gain.value=Math.max(0.05,S.vol);gn.connect(c.destination);
+ osc=c.createOscillator();osc.type='sawtooth';osc.frequency.value=750;
+ lfo=c.createOscillator();lfo.type='triangle';lfo.frequency.value=1.2;var lg=c.createGain();lg.gain.value=300;lfo.connect(lg);lg.connect(osc.frequency);
+ osc.connect(gn);osc.start();lfo.start();stopT=setTimeout(sirenStop,4000);}catch(e){}}
+function alarm(key,on){var isNew=on&&!alarms[key];if(on)alarms[key]=1;else delete alarms[key];var any=Object.keys(alarms).length>0;$('#lamp').classList.toggle('on',any);
+ if(isNew&&S.sound&&!muted){sirenPlay()}
+ if(!any){sirenStop()}}
+$('#mute').onclick=function(){muted=!muted;this.textContent=muted?'🔇':'🔊';if(muted)sirenStop();else ac();};
+$('#lamp').onclick=function(){sirenStop()};
 // ---------- pasek pacjenta ----------
 function applyS(){document.documentElement.style.setProperty('--fs',S.fs+'px');$('#pcu').textContent=S.crea==='umol'?'µmol/l':'mg/dl';}
 function patBar(){var p=SKS.P();$('#pw').classList.toggle('bad',p.wFlag==='red');$('#pw').classList.toggle('warn',p.wFlag==='orange');
@@ -32,6 +42,7 @@ function refresh(){if(active&&active.sync)active.sync();else if(active&&active.u
 // ---------- most do modułów v6/v4 (ten sam origin) ----------
 function bridge(f,m){var w=f.contentWindow,d=w.document,st=d.createElement('style');
  st.textContent='#startDisc{display:none!important}'+(m.hide||'');d.head.appendChild(st);
+ ['pointerdown','keydown','touchstart'].forEach(function(ev){d.addEventListener(ev,function(){ac()},{passive:true})});
  var P=w.HTMLMediaElement.prototype,op=P.play;P.play=function(){alarm(m.id+':int',true);return Promise.resolve();};
  P.pause=function(){alarm(m.id+':int',false);};
  new w.MutationObserver(function(){sync(f,m)}).observe(d.body,{childList:true,subtree:true});sync(f,m);}
@@ -39,7 +50,8 @@ function setVal(el,v,m,k){v=String(v);if(!el||el.value===v)return;var L=m['_'+k]
 function sync(f,m){var d;try{d=f.contentWindow.document}catch(e){return}if(!d||!d.body)return;var p=SKS.P(),wv=String(PT.w||'');
  var wi=d.getElementById('w');if(wi&&wv)setVal(wi,wv,m,'w');
  if(m.id==='se'){var map={liver:'liver',renal:'renal',heart:'cardiac',preg:'preg'};Object.keys(map).forEach(function(k){var b=d.querySelector('.tg[data-c="'+map[k]+'"]');if(b&&b.classList.contains('on')!==!!PT.co[k])b.click();});
-  var cr=d.getElementById('crcl');if(cr&&isFinite(p.crcl))setVal(cr,Math.round(p.crcl),m,'cr');}}
+  var cr=d.getElementById('crcl');if(cr&&isFinite(p.crcl))setVal(cr,Math.round(p.crcl),m,'cr');}
+ if(m.red)alarm(m.id+':dom',!!d.querySelector(m.red));}
 // ---------- start ----------
 applyS();patBar();show();
 if(sessionStorage.getItem('sk_disc')==='1')$('#disc').remove();else $('#discOk').onclick=function(){sessionStorage.setItem('sk_disc','1');$('#disc').remove();};
