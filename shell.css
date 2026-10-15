@@ -44,3 +44,10 @@ table.src{font-size:.85rem}ul.src{font-size:.85rem;padding-left:18px}
 input[type=checkbox]{width:auto;transform:scale(1.3);margin:0 4px}input[type=range]{width:140px}
 select{font:inherit;padding:5px 7px;border:2px solid #cfc3e8;border-radius:8px;background:#fff}
 .nih{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:6px 14px;width:100%}.nih label{justify-content:space-between}.nih select{max-width:210px}
+#printArea{display:none}
+@media print{@page{size:A4;margin:14mm}html,body{background:#fff!important}body>*:not(#printArea){display:none!important}#printArea{display:block;font:11pt/1.35 Arial,sans-serif;color:#000}
+#printArea h1{font-size:15pt;margin:0}#printArea h2{font-size:12pt;margin:10px 0 4px;border-bottom:1px solid #000}#printArea .sub{font-size:9.5pt;margin-bottom:6px}
+#printArea table{border-collapse:collapse;width:100%}#printArea th,#printArea td{border:1px solid #888;padding:3px 6px;text-align:left;vertical-align:top}#printArea th{width:32%;background:#eee}
+#printArea li{margin:2px 0}#printArea li.red b{text-decoration:underline}#printArea .lines{height:28mm;border-bottom:1px dotted #000}#printArea .sig{display:flex;justify-content:space-between;margin-top:14mm}#printArea .foot{font-size:8pt;margin-top:8mm;color:#444}}
+.np{background:#fff4d6}
+.pl{font-weight:400;font-size:.82em;color:#6b5a86}

@@ -74,7 +74,7 @@ function stroke(i){var s=i.s||{},o=i.o||{},c=i.cvt||{},tu=i.tu||{},R=[],add=func
  else if(deficit&&h>24){f.late=true;add('orange','Udar >24 h, stabilny','NCCT + angio-TK; MR na oddziale następnego dnia; konsultacja neurologa po wynikach',S_A+' · '+S_PTN);}
  else if(deficit){add('orange','Udar 4,5–24 h, bez cech LVO','NCCT + angio-TK teraz (szukaj LVO); neurolog pilnie',S_A+' · '+S_E);}
  if(s.head){var ot=ottawa({age:i.age,neck:s.neck,loc:s.loc,ex:o.ex,inst:o.inst,flex:o.flex});
-  if(ot.pos){f.sah=true;add('red','Podejrzenie SAH ('+ot.crit.join(', ')+')','NCCT teraz. Ujemne TK ≤6 h od początku (odczyt radiologa) → SAH wykluczony. >6 h ujemne → PL (≥12 h: ksantochromia) lub angio-TK. Krew w TK → angio-TK (tętniak), neurochirurg.','AHA/ASA SAH 2023 · Ottawa SAH Rule (Perry 2013)');}
+  if(ot.pos){f.sah=true;add('red','Podejrzenie SAH ('+ot.crit.join(', ')+')','NCCT teraz. Ujemne TK ≤6 h od początku (odczyt radiologa) → SAH wykluczony. >6 h ujemne → nakłucie lędźwiowe (≥12 h: ksantochromia) lub angio-TK. Krew w TK → angio-TK (tętniak), neurochirurg.','AHA/ASA SAH 2023 · Ottawa SAH Rule (Perry 2013)');}
   else add('ok','Ottawa SAH ujemna','SAH mało prawdopodobny (tylko przytomny ≥15 lat, bez deficytu, ból ≤1 h od szczytu)','Ottawa SAH Rule (Perry 2013)');}
  var cvtR=!!(c.oc||c.thr||c.pap||c.inf||c.young),cvtS=!!(s.head||s.hdp||s.seiz||c.pap||deficit);
  if(cvtR&&cvtS){f.cvt=true;add(s.loc?'red':'orange','Podejrzenie zakrzepicy zatok (CVT)','TK + angio-TK fazy żylnej (venografia) lub MR + MRV. D-dimer: prawidłowy nie wyklucza (izolowany ból głowy, objawy >1 tydz.)','ESO 2017 / EAN CVT · AHA 2024 CVT');}
@@ -98,4 +98,20 @@ function stroke(i){var s=i.s||{},o=i.o||{},c=i.cvt||{},tu=i.tu||{},R=[],add=func
  if(!R.length)add('','','Zaznacz objawy / czas.','');
  var lvl=R.some(function(r){return r.lvl==='red'})?'red':R.some(function(r){return r.lvl==='orange'})?'orange':'ok';return{list:R,lvl:lvl,f:f};}
 
-return{ottawa:ottawa,stroke:stroke,SRC:SRC,NIH:NIH,nihss:nihss,alteplase:alteplase,tenecteplase:tenecteplase,window:window_,CI_ABS:CI_ABS,CI_REL:CI_REL,ci:ci,bp:bp,glu:glu,ichScore:ichScore,ICH_MORT:ICH_MORT,abc2:abc2,ichBP:ichBP,MRS:MRS,abcd2:abcd2,gcs:gcs,amts:amts,minicog:minicog,moca:moca,CDR:CDR,fourAT:fourAT,mmse:mmse};});
+// ---------- PESEL ----------
+function pesel(x,now){x=String(x||'').replace(/\s/g,'');if(!/^\d{11}$/.test(x))return{ok:false,err:'PESEL musi mieć 11 cyfr'};var d=x.split('').map(Number),W=[1,3,7,9,1,3,7,9,1,3],sum=0;for(var k=0;k<10;k++)sum+=d[k]*W[k];
+ if((10-sum%10)%10!==d[10])return{ok:false,err:'Błędna cyfra kontrolna PESEL'};var y=d[0]*10+d[1],m=d[2]*10+d[3],dd=d[4]*10+d[5],c=Math.floor(m/20),cent=[1900,2000,2100,2200,1800][c];m=m%20;y+=cent;
+ var dt=new Date(y,m-1,dd);if(dt.getFullYear()!==y||dt.getMonth()!==m-1||dt.getDate()!==dd)return{ok:false,err:'Błędna data w PESEL'};
+ now=now||new Date();var age=now.getFullYear()-y-((now.getMonth()<m-1||(now.getMonth()===m-1&&now.getDate()<dd))?1:0);
+ return{ok:true,birth:y+'-'+('0'+m).slice(-2)+'-'+('0'+dd).slice(-2),age:age,sex:d[9]%2?'m':'f'};}
+// ---------- RACE (Pérez de la Ossa 2014): face 0–2, arm 0–2, leg 0–2, gaze 0–1, aphasia (P niedowład) / agnozja (L niedowład) 0–2 ----------
+var RACE_MAX={face:2,arm:2,leg:2,gaze:1,cort:2};
+function race(v){var s=0,n=0;Object.keys(RACE_MAX).forEach(function(k){var x=v[k];if(x===''||x==null||!nz(+x))return;s+=Math.max(0,Math.min(RACE_MAX[k],Math.round(+x)));n++;});return{score:s,n:n,lvo:s>=5};}
+// z NIHSS (konwersja wg Pérez de la Ossa 2014)
+function raceFromNihss(v){var g=function(k){var x=v[k];return x==='UN'||x===''||x==null?0:+x||0};var arm=Math.max(g('5a'),g('5b')),leg=Math.max(g('6a'),g('6b'));
+ var right=Math.max(g('5b'),g('6b'))>=Math.max(g('5a'),g('6a'));
+ return{face:g('4')>=2?2:g('4')>=1?1:0,arm:arm>=3?2:arm>=2?1:0,leg:leg>=3?2:leg>=2?1:0,gaze:g('2')>=1?1:0,cort:right?(g('9')>=2?2:g('9')>=1?1:0):(g('11')>=2?2:g('11')>=1?1:0)};}
+// podpowiedź z zaznaczonych objawów (ostrożna)
+function raceFromSym(s){return{face:s.foc?1:'',arm:s.foc?1:'',leg:'',gaze:s.gaze?1:'',cort:(s.aph||s.neg)?2:''};}
+
+return{pesel:pesel,race:race,RACE_MAX:RACE_MAX,raceFromNihss:raceFromNihss,raceFromSym:raceFromSym,ottawa:ottawa,stroke:stroke,SRC:SRC,NIH:NIH,nihss:nihss,alteplase:alteplase,tenecteplase:tenecteplase,window:window_,CI_ABS:CI_ABS,CI_REL:CI_REL,ci:ci,bp:bp,glu:glu,ichScore:ichScore,ICH_MORT:ICH_MORT,abc2:abc2,ichBP:ichBP,MRS:MRS,abcd2:abcd2,gcs:gcs,amts:amts,minicog:minicog,moca:moca,CDR:CDR,fourAT:fourAT,mmse:mmse};});

@@ -45,7 +45,7 @@ function bridge(f,m){var w=f.contentWindow,d=w.document,st=d.createElement('styl
  ['pointerdown','keydown','touchstart'].forEach(function(ev){d.addEventListener(ev,function(){ac()},{passive:true})});
  var P=w.HTMLMediaElement.prototype,op=P.play;P.play=function(){alarm(m.id+':int',true);return Promise.resolve();};
  P.pause=function(){alarm(m.id+':int',false);};
- new w.MutationObserver(function(){sync(f,m)}).observe(d.body,{childList:true,subtree:true});sync(f,m);}
+ if(window.SKG)SKG.obs(d.body);new w.MutationObserver(function(){sync(f,m)}).observe(d.body,{childList:true,subtree:true});sync(f,m);}
 function setVal(el,v,m,k){v=String(v);if(!el||el.value===v)return;var L=m['_'+k];if(el.value!==''&&el.value!==L)return;el.value=v;m['_'+k]=v;el.dispatchEvent(new Event('input',{bubbles:true}));}
 function sync(f,m){var d;try{d=f.contentWindow.document}catch(e){return}if(!d||!d.body)return;var p=SKS.P(),wv=String(PT.w||'');
  var wi=d.getElementById('w');if(wi&&wv)setVal(wi,wv,m,'w');
@@ -55,4 +55,9 @@ function sync(f,m){var d;try{d=f.contentWindow.document}catch(e){return}if(!d||!
 // ---------- start ----------
 applyS();patBar();show();
 if(sessionStorage.getItem('sk_disc')==='1')$('#disc').remove();else $('#discOk').onclick=function(){sessionStorage.setItem('sk_disc','1');$('#disc').remove();};
-window.SKS.show=function(id){cur=id;show();};})();
+window.SKS.show=function(id){cur=id;show();};
+window.SKS.setP=function(o){var ch=false;if(o.age!=null&&String(PT.age)!==String(o.age)){PT.age=String(o.age);$('#pa').value=PT.age;ch=true}if(o.sex&&PT.sex!==o.sex){PT.sex=o.sex;ch=true}if(ch){saveP();patBar();setTimeout(refresh,0);}};
+window.SKS.nextPatient=function(){if(!confirm('Następny pacjent: wyczyścić dane pacjenta i wszystkie moduły? (ustawienia zostają)'))return;
+ Object.keys(localStorage).forEach(function(k){if(k==='sk_settings'||k==='omdl_settings'||k==='sk_mod')return;localStorage.removeItem(k)});location.reload();};
+$('#nextPt').onclick=window.SKS.nextPatient;
+if(window.SKG)SKG.obs($('#main'));})();

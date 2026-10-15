@@ -4,16 +4,39 @@ function sl(t){return ' <span class="mut">['+t+']</span>';}
 function sel(id,lab,opts){return '<label>'+lab+' <select id="'+id+'">'+opts.map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select></label>';}
 function lnk(id,t){return '<button class="tg" onclick="SKS.show(\''+id+'\')">→ '+t+'</button>';}
 function lnk2(t,x){return '<button class="tg" onclick="document.querySelector(&quot;#main .tabs [data-t='+t+']&quot;).click()">→ '+x+'</button>';}
+var LAST=null;
+function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+window.SKN={print:function(){if(!LAST){alert('Otwórz zakładkę „Algorytm: podejrzenie udaru”.');return;}var L=LAST,i=L.i,s=i.s,P=L.P,F2=function(x){return isFinite(x)?x:'—'};
+ var lab={foc:'niedowład/zab. czucia',aph:'afazja',neg:'zaniedbywanie (neglect)',gaze:'zwrot gałek ocznych',vf:'ubytek pola widzenia',post:'objawy tylnego krążenia (zawroty, ataksja, podwójne widzenie, dyzartria, dysfagia)',loc:'zaburzenia przytomności',head:'nagły najsilniejszy ból głowy',hdp:'narastający ból głowy',seiz:'napad na początku',neck:'sztywność/ból karku'};
+ var sym=Object.keys(lab).filter(function(k){return s[k]}).map(function(k){return lab[k]});
+ var lkw=i.wake?'udar ze snu (wake-up)':i.unk||!isFinite(i.h)?'nieznany':i.h+' h przed oceną (ok. '+(function(){var d=new Date(Date.now()-i.h*3600e3);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)})()+')';
+ var ac={'':'brak',vka:'VKA',dabi:'dabigatran',xa:'anty-Xa',lmwh:'HDCz'}[i.ac||''];
+ var ot=N.ottawa({age:P.age,neck:s.neck,loc:s.loc,ex:i.o.ex,inst:i.o.inst,flex:i.o.flex});
+ var row=function(a,b){return '<tr><th>'+a+'</th><td>'+b+'</td></tr>'};
+ var h='<h1>Protokół postępowania – podejrzenie udaru</h1><div class="sub">SOR Szpital w Nowym Targu · wydruk '+new Date().toLocaleString('pl-PL')+'</div><table>'+
+  row('Pacjent',esc(L.name)||'..............................................')+row('PESEL',esc(L.pesel)||'...........................')+row('Data ur. / wiek / płeć',(L.pz&&L.pz.ok?L.pz.birth+' / ':'')+F2(P.age)+' lat / '+({m:'M',f:'K'}[P.sex]||'—'))+
+  row('Przyjęcie na SOR',esc(L.adm))+row('Ostatnio widziany zdrowy (LKW)',lkw)+
+  row('Objawy',sym.join(', ')||'—')+row('RACE (0–9)',L.rc.n?L.rc.score+(L.rc.lvo?' – podejrzenie LVO':''):'—')+row('NIHSS (0–42)',F2(L.nih))+row('HINTS',{'':'nie badano',central:'centralny',peripheral:'obwodowy'}[i.hints||''])+
+  row('Ottawa SAH',s.head?(ot.pos?'dodatnia: '+ot.crit.join(', '):'ujemna'):'nie dotyczy')+row('RR / glikemia',F2(i.sbp)+'/'+F2(i.dbp)+' mmHg · '+esc(L.gluTxt))+row('Antykoagulacja',ac+(isFinite(i.acH)?' (ostatnia dawka '+i.acH+' h temu)':''))+
+  row('Masa ciała',F2(P.w)+' kg')+'</table><h2>Wnioski / zlecenia</h2><ol>'+L.r.list.map(function(x){return '<li class="'+x.lvl+'"><b>'+esc(x.t)+'</b> – '+esc(x.d)+(x.s?' <i>['+esc(x.s)+']</i>':'')+'</li>'}).join('')+'</ol>'+
+  '<h2>Uwagi lekarza</h2><div class="lines"></div><div class="sig"><div>Godzina: ..............</div><div>Podpis i pieczątka lekarza<br><br>.......................................</div></div><div class="foot">SOR Kalkulatory (Wujek Fido) – narzędzie pomocnicze, niecertyfikowane. Decyzję podejmuje lekarz.</div>';
+ var a=document.getElementById('printArea');if(!a){a=document.createElement('div');a.id='printArea';document.body.appendChild(a);}a.innerHTML=h;if(window.SKG)SKG.run(a);window.print();}};
 var MOT={'5a':1,'5b':1,'6a':1,'6b':1,'7':1};
 var NEU=tabbed({id:'neuro',icon:'🧠',name:'Neurologia'},'Neurologia – udar',[['a','Algorytm: podejrzenie udaru'],['n','NIHSS'],['t','Tromboliza'],['i','Krwotok (ICH)'],['p','Rokowanie / TIA / GCS'],['d','Otępienie / majaczenie']],
  function(t){
-  if(t==='a'){var G=function(h,x){return '<div style="width:100%"><b>'+h+'</b> '+x+'</div>'};return G('Czas',inp('h','od ostatniego widzenia zdrowego','h')+chk('wake','wake-up')+chk('unk','nieznany'))+
-   G('Objawy',chk('foc','niedowład/czucie')+chk('aph','afazja')+chk('neg','zaniedbywanie')+chk('gaze','zwrot gałek')+chk('vf','pole widzenia')+chk('post','zawroty/ataksja/podwójne/dyzartria/dysfagia')+chk('loc','↓ przytomność')+chk('head','nagły najsilniejszy ból głowy (szczyt ≤1 h)')+chk('hdp','ból głowy narastający')+chk('seiz','napad na początku')+chk('neck','sztywność/ból karku'))+
-   G('LAMS / NIHSS',inp('race','RACE','0–9')+inp('nih','NIHSS','')+sel('hints','HINTS',[['','—'],['central','centralny'],['peripheral','obwodowy']]))+
-   G('Ottawa SAH',chk('ex','przy wysiłku')+chk('inst','piorunujący')+chk('flex','ogr. zgięcia karku'))+
-   G('CVT',chk('cy','młoda kobieta')+chk('coc','antykoncepcja/ciąża/połóg')+chk('cthr','trombofilia')+chk('cpap','tarcza zastoinowa')+chk('cinf','infekcja ucha/zatok'))+
-   G('Guz',chk('tprog','narastanie dni/tyg.')+chk('tca','nowotwór')+chk('tmorn','ból głowy rano')+chk('thern','objawy wgłobienia'))+
-   G('Leki / parametry',sel('ac','Antykoagulant',[['','brak'],['vka','VKA'],['dabi','dabigatran'],['xa','anty-Xa'],['lmwh','HDCz']])+inp('ach','ost. dawka','h temu')+inp('glu','Glukoza',SKS.S.units==='mgdl'?'mg/dl':'mmol/l')+inp('sbp','SBP','')+inp('dbp','DBP','')+chk('mim','możliwy mimik (migrena, napad, psych., sepsa)'));}
+  if(t==='a'){var G=function(h,x){return '<div style="width:100%"><b>'+h+'</b> '+x+'</div>'};
+   var rs=function(id,lab,o){return sel(id,lab,[['','— auto']].concat(o))};
+   return '<div style="width:100%"><button class="tg np" onclick="SKS.nextPatient()">🆕 Następny pacjent</button> <button class="tg" onclick="SKN.print()">🖨 Drukuj protokół udarowy</button></div>'+
+   G('Pacjent','<label>Imię i nazwisko <input id="pname" style="width:200px"></label><label>PESEL <input id="pesel" inputmode="numeric" maxlength="11" style="width:130px"></label><label>Przyjęcie (data, godz.) <input id="adm" style="width:140px"></label><span id="pinfo" class="mut"></span>')+
+   G('Czas',inp('h','od ostatniego widzenia zdrowego (LKW – last known well)','h')+chk('wake','wake-up (udar ze snu – objawy zauważone po przebudzeniu)')+chk('unk','nieznany (czas początku nieznany)'))+
+   G('Objawy',chk('foc','niedowład/czucie')+chk('aph','afazja (zaburzenia mowy – rozumienie/mówienie)')+chk('neg','zaniedbywanie (neglect – pacjent ignoruje jedną stronę ciała/przestrzeni, np. nie widzi środka sznurka)')+chk('gaze','zwrot gałek ocznych')+chk('vf','ubytek pola widzenia')+chk('post','zawroty/ataksja (niezborność)/podwójne widzenie/dyzartria (bełkotliwa mowa)/dysfagia (zab. połykania)')+chk('loc','↓ przytomność')+chk('head','nagły najsilniejszy ból głowy (szczyt ≤1 h)')+chk('hdp','ból głowy narastający')+chk('seiz','napad na początku')+chk('neck','sztywność/ból karku'))+
+   G('RACE (skala zamknięcia dużego naczynia 0–9; ≥5 = podejrzenie LVO – niedrożność dużego naczynia)',rs('rc_face','Twarz',[[0,'0 brak'],[1,'1 łagodny'],[2,'2 umiark./ciężki']])+rs('rc_arm','Ręka',[[0,'0 norma/łagodny'],[1,'1 umiark.'],[2,'2 ciężki']])+rs('rc_leg','Noga',[[0,'0 norma/łagodny'],[1,'1 umiark.'],[2,'2 ciężki']])+rs('rc_gaze','Zwrot głowy/oczu',[[0,'0 brak'],[1,'1 obecny']])+rs('rc_cort','Afazja (niedowład P) / agnozja (niedowład L – nie rozpoznaje niedowładu/ręki)',[[0,'0 wykonuje oba'],[1,'1 jedno'],[2,'2 żadne']])+'<span id="raceInfo" class="mut nopl"></span>')+
+   G('NIHSS (skala ciężkości udaru 0–42)',inp('nih','wynik (puste = z zakładki NIHSS)','')+lnk2('n','wypełnij NIHSS'))+
+   G('HINTS (test 3 kroków przy zawrotach: impuls głowy, oczopląs, skew – skośne ustawienie gałek)','<input type="hidden" id="hints"><label><input type="radio" name="hintsR" value=""> nie badano</label><label><input type="radio" name="hintsR" value="central"> centralny (podejrzenie udaru pnia/móżdżku)</label><label><input type="radio" name="hintsR" value="peripheral"> obwodowy (błędnik)</label>')+
+   G('Ottawa SAH (reguła wykluczenia krwotoku podpajęczynówkowego – czy potrzebne TK/dalsza diagnostyka)',chk('ex','początek przy wysiłku')+chk('inst','ból piorunujący (szczyt natychmiast)')+chk('flex','ograniczone zgięcie karku'))+
+   G('CVT (zakrzepica zatok żylnych mózgu) – czynniki',chk('cy','młoda kobieta')+chk('coc','antykoncepcja/ciąża/połóg')+chk('cthr','trombofilia (skłonność do zakrzepów)')+chk('cpap','tarcza zastoinowa (obrzęk tarczy n. II)')+chk('cinf','infekcja ucha/zatok'))+
+   G('Guz',chk('tprog','narastanie przez dni/tyg.')+chk('tca','nowotwór w wywiadzie')+chk('tmorn','ból głowy rano')+chk('thern','objawy wgłobienia'))+
+   G('Leki / parametry',sel('ac','Antykoagulant',[['','brak'],['vka','VKA (acenokumarol/warfaryna)'],['dabi','dabigatran (Pradaxa)'],['xa','anty-Xa (riwaroksaban/apiksaban/edoksaban)'],['lmwh','HDCz (heparyna drobnocząsteczkowa)']])+inp('ach','ostatnia dawka','h temu')+inp('glu','Glukoza',SKS.S.units==='mgdl'?'mg/dl':'mmol/l')+inp('sbp','SBP (ciśn. skurczowe)','')+inp('dbp','DBP (rozkurczowe)','')+chk('mim','możliwy mimik (stan udający udar: hipoglikemia, napad, migrena, konwersja)'));}
   if(t==='n')return '<div class="nih">'+N.NIH.map(function(it){var o=it[2].map(function(d,k){return [k,k+' – '+d]});if(MOT[it[0]])o.push(['UN','UN – nie do oceny']);return sel('n'+it[0],it[1],o)}).join('')+'</div>';
   if(t==='t')return inp('h','Od zachorowania','h')+chk('wake','wake-up / nieznany czas')+chk('mm','niedopasowanie DWI-FLAIR / perfuzji')+'<br>'+
    sel('ph','RR',[['pre','przed trombolizą'],['post','po trombolizie (24 h)']])+inp('sbp','SBP','mmHg')+inp('dbp','DBP','mmHg')+inp('glu','Glukoza',SKS.S.units==='mgdl'?'mg/dl':'mmol/l')+
@@ -25,11 +48,27 @@ var NEU=tabbed({id:'neuro',icon:'🧠',name:'Neurologia'},'Neurologia – udar',
    '<br><b>MoCA</b> '+inp('moca','Punkty','0–30')+chk('edu','wykształcenie ≤12 lat')+' <b>MMSE</b> '+inp('mmse','Wynik','0–30')+sel('cdr','CDR globalnie',[['','—']].concat(N.CDR))+
    '<br><b>4AT</b> '+chk('fa','zaburzona czujność')+sel('fm','AMT4',[[0,'0 bez błędów'],[1,'1 błąd'],[2,'≥2 / nie do oceny']])+sel('ft','Miesiące wstecz',[[0,'≥7 poprawnie'],[1,'<7 / odmowa'],[2,'nie do oceny']])+chk('fc','ostra zmiana / fluktuacje');},
  function(t,g,P,X){var w=P.w,H='',lvl='ok';
-  if(t==='a'){var gm=isFinite(g('glu'))?(SKS.S.units==='mgdl'?g('glu'):g('glu')*18.016):NaN;
-   var r=N.stroke({h:g('h'),wake:g('wake'),unk:g('unk'),s:{foc:g('foc'),aph:g('aph'),neg:g('neg'),gaze:g('gaze'),vf:g('vf'),post:g('post'),loc:g('loc'),head:g('head'),hdp:g('hdp'),seiz:g('seiz'),neck:g('neck')},o:{ex:g('ex'),inst:g('inst'),flex:g('flex')},
-    cvt:{young:g('cy'),oc:g('coc'),thr:g('cthr'),pap:g('cpap'),inf:g('cinf')},tu:{prog:g('tprog'),ca:g('tca'),morn:g('tmorn'),hern:g('thern')},ac:g('ac'),acH:g('ach'),gluMg:gm,sbp:g('sbp'),dbp:g('dbp'),nihss:g('nih'),race:g('race'),hints:g('hints'),mimic:g('mim'),sex:P.sex,age:P.age});
+  if(t==='a'){var gm=isFinite(g('glu'))?(SKS.S.units==='mgdl'?g('glu'):g('glu')*18.016):NaN,$i=function(id){return document.getElementById(id)};
+   // pacjent
+   var adm=$i('adm');if(adm&&!adm.value){var d=new Date();adm.value=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);setTimeout(function(){adm.dispatchEvent(new Event('input'))},0);}
+   var pv=($i('pesel')||{}).value||'',pz=pv?N.pesel(pv):null,pi=$i('pinfo');
+   if(pi)pi.innerHTML=!pz?'':pz.ok?'<span class="g">✔ ur. '+pz.birth+' · '+pz.age+' lat · '+(pz.sex==='m'?'M':'K')+'</span>':'<span class="r">✖ '+pz.err+'</span>';
+   if(pz&&pz.ok)SKS.setP({age:pz.age,sex:pz.sex});
+   // HINTS radio
+   var hv=$i('hints').value;document.querySelectorAll('input[name=hintsR]').forEach(function(r){r.checked=r.value===hv;r.onchange=function(){$i('hints').value=r.value;$i('hints').dispatchEvent(new Event('input'))}});
+   // NIHSS z zakładki
+   var nv={};try{var st=JSON.parse(localStorage.getItem('sk_m_neuro_n')||'{}');N.NIH.forEach(function(it){if(st['n'+it[0]]!=null)nv[it[0]]=st['n'+it[0]]})}catch(e){}
+   var nFill=Object.keys(nv).some(function(k){return nv[k]!=='0'&&nv[k]!==''});var nih=isFinite(g('nih'))?g('nih'):nFill?N.nihss(nv).score:NaN;
+   // RACE
+   var sy={foc:g('foc'),aph:g('aph'),neg:g('neg'),gaze:g('gaze')},auto=nFill?N.raceFromNihss(nv):N.raceFromSym(sy),rv={},man=0;
+   Object.keys(N.RACE_MAX).forEach(function(k){var e=$i('rc_'+k).value;if(e!==''){rv[k]=e;man++}else rv[k]=auto[k];});var rc=N.race(rv);
+   $i('raceInfo').innerHTML=rc.n?'= <b>'+rc.score+'/9</b>'+(rc.lvo?' <span class="r">≥5 → podejrzenie LVO</span>':'')+' <span class="mut">('+(man===5?'ręcznie':man?'częściowo auto ':'auto ')+(man<5?(nFill?'z NIHSS':'z objawów'):'')+')</span>':'';
+   var inp_={h:g('h'),wake:g('wake'),unk:g('unk'),s:{foc:g('foc'),aph:g('aph'),neg:g('neg'),gaze:g('gaze'),vf:g('vf'),post:g('post'),loc:g('loc'),head:g('head'),hdp:g('hdp'),seiz:g('seiz'),neck:g('neck')},o:{ex:g('ex'),inst:g('inst'),flex:g('flex')},
+    cvt:{young:g('cy'),oc:g('coc'),thr:g('cthr'),pap:g('cpap'),inf:g('cinf')},tu:{prog:g('tprog'),ca:g('tca'),morn:g('tmorn'),hern:g('thern')},ac:g('ac'),acH:g('ach'),gluMg:gm,sbp:g('sbp'),dbp:g('dbp'),nihss:nih,race:rc.n?rc.score:NaN,hints:hv,mimic:g('mim'),sex:P.sex,age:P.age};
+   var r=N.stroke(inp_);
    H='<h3>WNIOSKI – co zlecić teraz</h3>'+r.list.map(function(x){return bx(x.lvl,x.t+(x.s?sl(x.s):''),x.d)}).join('');
    if(r.f.code)H+='<div>'+lnk2('t','Tromboliza')+lnk2('n','NIHSS')+'</div>';if(g('ac'))H+=lnk('acoag','Antykoagulacja');
+   LAST={i:inp_,r:r,rc:rc,nih:nih,name:($i('pname')||{}).value||'',pesel:pv,pz:pz,adm:adm?adm.value:'',P:P,gluTxt:isFinite(g('glu'))?g('glu')+' '+(SKS.S.units==='mgdl'?'mg/dl':'mmol/l'):'—'};
    return{H:H,lvl:r.lvl==='red'?'red':'ok'};}
   if(t==='n'){var v={};N.NIH.forEach(function(it){var e=document.getElementById('n'+it[0]);v[it[0]]=e?e.value:''});var r=N.nihss(v);
    H=bx(r.lvl,'NIHSS'+sl('NINDS / AHA'),'<span class="big">'+r.score+' / 42</span> – '+r.sev);}
