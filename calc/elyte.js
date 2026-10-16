@@ -24,11 +24,11 @@ function hyperK(i){if(!nz(i.k))return null;var o={lvl:'ok',steps:[]};
  if(i.k>=6.5||(i.ecg&&i.k>=5.5))o.lvl='red';else if(i.k>=6.0)o.lvl='orange';
  if(i.ecg&&i.k>=5.5)o.steps.push({t:'Wapń',d:'Calcium gluconicum 10% 30 ml i.v. w 10 min LUB CaCl₂ 10% 10 ml w 5 min (6,8 mmol Ca)'});
  if(i.k>=6.0){o.steps.push({t:'Insulina+glukoza',d:'NovoRapid 10 j. + 25 g glukozy i.v. w 15 min (250 ml 10% lub 125 ml 20%)'});
-  if(nz(i.glu)&&i.glu<7)o.steps.push({t:'Glukoza',d:'Glukoza 10% 50 ml/h przez 5 h (glikemia przed <7 mmol/l)'});}
+  if(nz(i.glu)&&i.glu<7)o.steps.push({t:'Glukoza',d:'Glukoza 10% 50 ml/h przez 5 h (glikemia przed <7 mmol/l = 126 mg/dl)'});}
  if(i.k>=6.5)o.steps.push({t:'Salbutamol',d:'10–20 mg w nebulizacji (dodatkowo, nie zamiast insuliny)'});
  if(i.k>=6.0)o.steps.push({t:'Kontrola',d:'K⁺ i glikemia po 1, 2, 4, 6 h'});
  return o;}
-function mg(i){var o={lvl:'ok'};if(i.tdp){o.lvl='red';o.txt='MgSO₄ 2 g i.v. w 10 min (TdP, ERC 2021)';}else if(nz(i.mg)&&i.mg<0.5){o.lvl='orange';o.txt='Mg <0,5 mmol/l: MgSO₄ i.v. – dawka wg ChPL/protokołu (DO WERYFIKACJI)';}
+function mg(i){var o={lvl:'ok'};if(i.tdp){o.lvl='red';o.txt='MgSO₄ 2 g i.v. w 10 min (TdP, ERC 2021)';}else if(nz(i.mg)&&i.mg<0.5){o.lvl='orange';o.txt='Mg <0,5 mmol/l (1,2 mg/dl): MgSO₄ i.v. – dawka wg ChPL/protokołu (DO WERYFIKACJI)';}
  o.mlOf20=2/0.2; // ml 20% MgSO4 (200 mg/ml) dla 2 g
  return o;}
 function ca(i){if(!nz(i.ca))return null;var o={lvl:'ok'};o.corr=nz(i.alb)?i.ca+0.02*(40-i.alb):i.ca; // mmol/l, albumina g/l

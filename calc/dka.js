@@ -38,6 +38,6 @@ function compute(i){var o={warn:[],lvl:'ok',lines:[]},w=i.w;
  // przełączenie na glukozę
  o.gluSwitch=nz(i.glu)&&i.glu<14; o.gluTxt='Glukoza <14 mmol/l (252 mg/dl): + glukoza 10% 125 ml/h (JBDS)';
  if(nz(i.glu)&&i.glu<4){lv('red');o.warn.push('Hipoglikemia!');}
- if(o.mode==='hhs'||o.mode==='mixed')o.hhsTargets='Cel: glukoza ↓ 4–6 mmol/l/h, Na ↓ ≤10 mmol/l/24 h, osmolalność ↓ 3–8 mOsm/kg/h';
+ if(o.mode==='hhs'||o.mode==='mixed')o.hhsTargets='Cel: glukoza ↓ 4–6 mmol/l/h (72–108 mg/dl/h), Na ↓ ≤10 mmol/l/24 h, osmolalność ↓ 3–8 mOsm/kg/h';
  return o;}
 return{SRC:SRC,PEN:PEN,compute:compute};});

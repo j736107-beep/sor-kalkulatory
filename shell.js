@@ -1,9 +1,14 @@
 (function(){var C=SK.core,$=function(s,r){return (r||document).querySelector(s)};
-var DEF={sound:true,vol:0.7,units:'mmol',crea:'mgdl',fs:16,syr:50};
+var DEF={sound:true,vol:0.7,units:'conv',fs:16,syr:50};
 function load(k,d){try{return Object.assign({},d,JSON.parse(localStorage.getItem(k)||'{}'))}catch(e){return Object.assign({},d)}}
-var S=load('sk_settings',DEF),PT=load('sk_patient',{w:'',age:'',sex:'',crea:'',co:{}}),cur=localStorage.getItem('sk_mod')||'pompy',muted=false,alarms={};
+var S=load('sk_settings',DEF),PT=load('sk_patient',{w:'',age:'',sex:'',crea:'',co:{}}),UN=SK.units,
+ LEG=S.units==='mmol'?'si':S.units==='mgdl'?'conv':S.units==='si'?'si':'conv';
+// v3.8: jedno globalne ustawienie jednostek (domyślnie mg/dl); kreatynina pacjenta przechowywana kanonicznie (crMg, mg/dl)
+if(S.uv!==38){if(PT.crMg==null&&PT.crea!==''&&PT.crea!=null){var _c=C.num(PT.crea);PT.crMg=isFinite(_c)?(S.crea==='umol'?_c/88.42:_c):'';}S.units='conv';delete S.crea;S.uv=38;localStorage.setItem('sk_settings',JSON.stringify(S));}
+if(PT.crMg==null)PT.crMg='';delete PT.crea;
+cur=localStorage.getItem('sk_mod')||'pompy',muted=false,alarms={};
 function saveS(){localStorage.setItem('sk_settings',JSON.stringify(S))}function saveP(){localStorage.setItem('sk_patient',JSON.stringify(PT))}
-window.SKS={get S(){return S},P:function(){var p=C.patient({w:PT.w,age:PT.age,sex:PT.sex,crea:PT.crea,creaU:S.crea,co:PT.co});return p;},alarm:alarm,saveS:saveS,DEF:DEF,setS:function(k,v){S[k]=v;saveS();applyS();}};
+window.SKS={get S(){return S},P:function(){var p=C.patient({w:PT.w,age:PT.age,sex:PT.sex,crea:PT.crMg,creaU:'mgdl',co:PT.co});return p;},alarm:alarm,saveS:saveS,legacy:function(){return LEG},DEF:DEF,setS:function(k,v){S[k]=v;saveS();applyS();}};
 // ---------- alarm: czerwona lampa + syrena ----------
 var siren=$('#siren');
 // syrena WebAudio (niezależna od pliku, odblokowana pierwszym kliknięciem/klawiszem)
@@ -22,13 +27,15 @@ function alarm(key,on){var isNew=on&&!alarms[key];if(on)alarms[key]=1;else delet
 $('#mute').onclick=function(){muted=!muted;this.textContent=muted?'🔇':'🔊';if(muted)sirenStop();else ac();};
 $('#lamp').onclick=function(){sirenStop()};
 // ---------- pasek pacjenta ----------
-function applyS(){document.documentElement.style.setProperty('--fs',S.fs+'px');$('#pcu').textContent=S.crea==='umol'?'µmol/l':'mg/dl';}
+function applyS(){document.documentElement.style.setProperty('--fs',S.fs+'px');$('#pcu').textContent=UN.label('crea',S.units);}
 function patBar(){var p=SKS.P();$('#pw').classList.toggle('bad',p.wFlag==='red');$('#pw').classList.toggle('warn',p.wFlag==='orange');
+ var gf=$('#pgf');gf.textContent='eGFR '+(isFinite(p.egfr)?C.fmt(p.egfr,0):'—');gf.title='CKD-EPI 2021, ml/min/1,73 m²';gf.style.background=isFinite(p.egfr)&&p.egfr<30?'#ffd9de':isFinite(p.egfr)&&p.egfr<60?'#ffeccc':'';
  $('#pcr').textContent='CrCl '+(isFinite(p.crcl)?C.fmt(p.crcl,0)+' ml/min':(PT.sex?'—':'— (płeć?)'));$('#pcr').style.background=isFinite(p.crcl)&&p.crcl<30?'#ffd9de':isFinite(p.crcl)&&p.crcl<60?'#ffeccc':'';
  document.querySelectorAll('#psex button').forEach(function(b){b.classList.toggle('on',b.dataset.s===PT.sex)});
  document.querySelectorAll('.tg').forEach(function(b){b.classList.toggle('on',!!PT.co[b.dataset.c])});}
-$('#pw').value=PT.w;$('#pa').value=PT.age;$('#pc').value=PT.crea;
-[['#pw','w'],['#pa','age'],['#pc','crea']].forEach(function(a){$(a[0]).oninput=function(){PT[a[1]]=this.value;saveP();patBar();refresh();}});
+$('#pw').value=PT.w;$('#pa').value=PT.age;function pcShow(){$('#pc').value=PT.crMg===''?'':UN.round('crea',UN.fromSI('crea',UN.toSI('crea',+PT.crMg,'conv'),S.units),S.units)}pcShow();
+$('#pc').oninput=function(){var x=C.num(this.value);PT.crMg=isFinite(x)?UN.conv('crea',x,S.units,'conv'):'';saveP();patBar();refresh();};
+[['#pw','w'],['#pa','age']].forEach(function(a){$(a[0]).oninput=function(){PT[a[1]]=this.value;saveP();patBar();refresh();}});
 document.querySelectorAll('#psex button').forEach(function(b){b.onclick=function(){PT.sex=b.dataset.s;saveP();patBar();refresh();}});
 document.querySelectorAll('.tg').forEach(function(b){b.onclick=function(){PT.co[b.dataset.c]=!PT.co[b.dataset.c];saveP();patBar();refresh();}});
 // ---------- nawigacja ----------
@@ -56,6 +63,10 @@ function sync(f,m){var d;try{d=f.contentWindow.document}catch(e){return}if(!d||!
 applyS();patBar();show();
 if(sessionStorage.getItem('sk_disc')==='1')$('#disc').remove();else $('#discOk').onclick=function(){sessionStorage.setItem('sk_disc','1');$('#disc').remove();};
 window.SKS.show=function(id){cur=id;show();};
+// globalna zmiana jednostek: przelicza wpisane wartości (przechowywane w SI), etykiety i wyniki na żywo, bez przeładowania
+window.SKS.setUnits=function(u){u=u==='si'?'si':'conv';if(S.units===u)return;S.units=u;saveS();applyS();pcShow();patBar();
+ var y=window.scrollY;show();window.scrollTo(0,y);document.dispatchEvent(new CustomEvent('sk-units',{detail:u}));};
+$('#pcu').onclick=function(){SKS.setUnits(S.units==='si'?'conv':'si');};
 window.SKS.setP=function(o){var ch=false;if(o.age!=null&&String(PT.age)!==String(o.age)){PT.age=String(o.age);$('#pa').value=PT.age;ch=true}if(o.sex&&PT.sex!==o.sex){PT.sex=o.sex;ch=true}if(ch){saveP();patBar();setTimeout(refresh,0);}};
 window.SKS.nextPatient=function(){if(!confirm('Następny pacjent: wyczyścić dane pacjenta i wszystkie moduły? (ustawienia zostają)'))return;
  Object.keys(localStorage).forEach(function(k){if(k==='sk_settings'||k==='omdl_settings'||k==='sk_mod')return;localStorage.removeItem(k)});location.reload();};

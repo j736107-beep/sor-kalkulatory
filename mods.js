@@ -1,23 +1,30 @@
 (function(){var C=SK.core,F=C.fmt,N=C.num;
 function h(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function inp(id,lab,unit,ph){return '<label>'+lab+' <input id="'+id+'" inputmode="decimal" placeholder="'+(ph||'')+'">'+(unit?'<span class="mut">'+unit+'</span>':'')+'</label>';}
+function USYS(){return window.SKS&&SKS.S&&SKS.S.units==='si'?'si':'conv'}
+function inp(id,lab,unit,ph){if(unit&&unit[0]==='@'){var a=unit.slice(1);return '<label>'+lab+' <input id="'+id+'" data-u="'+a+'" inputmode="decimal" placeholder="'+(ph||'')+'"><span class="mut" data-ul="'+a+'">'+SK.units.label(a,USYS())+'</span></label>';}
+ return '<label>'+lab+' <input id="'+id+'" inputmode="decimal" placeholder="'+(ph||'')+'">'+(unit?'<span class="mut">'+unit+'</span>':'')+'</label>';}
 function bx(cls,title,body){return '<div class="box '+cls+'">'+(title?'<h3>'+title+'</h3>':'')+body+'</div>';}
 function src(list){return '<ul class="src">'+list.map(function(s){return '<li>'+s+'</li>'}).join('')+'</ul>';}
 function store(id){var k='sk_m_'+id;return{get:function(){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch(e){return{}}},set:function(v){localStorage.setItem(k,JSON.stringify(v))}};}
-function bind(el,id,upd){var s=store(id),v=s.get();el.querySelectorAll('input[id],select[id]').forEach(function(i){if(i.tagName==='SELECT'){if(v[i.id]!=null)i.value=v[i.id];i.onchange=function(){v[i.id]=i.value;s.set(v);upd()}}else if(i.type==='checkbox'){i.checked=!!v[i.id];i.onchange=function(){v[i.id]=i.checked;s.set(v);upd()}}else{if(v[i.id]!=null)i.value=v[i.id];i.oninput=function(){v[i.id]=i.value;s.set(v);upd()}}});
- return function(id){var e=el.querySelector('#'+id);return e.tagName==='SELECT'?e.value:e.type==='checkbox'?e.checked:N(e.value)};}
+function bind(el,id,upd){var s=store(id),v=s.get(),UN=SK.units,sys=USYS();
+ // migracja: dawniej zapisywano wartości w jednostce wyświetlanej; teraz wartości z jednostką (data-u) przechowywane kanonicznie w SI
+ if(v.__si!==1){var leg=window.SKS&&SKS.legacy?SKS.legacy():'conv';el.querySelectorAll('input[data-u]').forEach(function(i){if(v[i.id]!=null&&v[i.id]!==''){var x=N(v[i.id]);v[i.id]=isFinite(x)?String(UN.toSI(i.dataset.u,x,leg)):''}});v.__si=1;s.set(v);}
+ el.querySelectorAll('input[id],select[id]').forEach(function(i){if(i.tagName==='SELECT'){if(v[i.id]!=null)i.value=v[i.id];i.onchange=function(){v[i.id]=i.value;s.set(v);upd()}}else if(i.type==='checkbox'){i.checked=!!v[i.id];i.onchange=function(){v[i.id]=i.checked;s.set(v);upd()}}
+  else if(i.dataset.u){var a=i.dataset.u;if(v[i.id]!=null&&v[i.id]!=='')i.value=UN.round(a,UN.fromSI(a,+v[i.id],sys),sys);i.oninput=function(){var x=N(i.value);v[i.id]=isFinite(x)?String(UN.toSI(a,x,USYS())):'';s.set(v);upd()}}
+  else{if(v[i.id]!=null)i.value=v[i.id];i.oninput=function(){v[i.id]=i.value;s.set(v);upd()}}});
+ return function(id){var e=el.querySelector('#'+id);if(e.tagName==='SELECT')return e.value;if(e.type==='checkbox')return e.checked;if(e.dataset.u){var x=v[id];return x==null||x===''?NaN:+x}return N(e.value)};}
 function infoToggle(el,html){var b=el.querySelector('.info'),d=el.querySelector('.infobox');b.onclick=function(){d.hidden=!d.hidden};d.innerHTML=html;}
 // ================= DKA / HHS =================
-var DKA={id:'dka',icon:'🍬',name:'DKA / HHS',render:function(el,X){var S=X.S,mg=S.units==='mgdl',gu=mg?'mg/dl':'mmol/l',uu=mg?'mg/dl':'mmol/l';
+var DKA={id:'dka',icon:'🍬',name:'DKA / HHS',render:function(el,X){var S=X.S;
  el.innerHTML='<button class="info">ℹ</button><h2>DKA / HHS</h2>'+
- '<div class="row">'+inp('glu','Glukoza',gu)+inp('ket','Ketony',"mmol/l")+inp('ph','pH','')+inp('hco3','HCO₃⁻','mmol/l')+'</div>'+
- '<div class="row">'+inp('k','K⁺','mmol/l')+inp('na','Na⁺','mmol/l')+inp('cl','Cl⁻','mmol/l')+inp('urea','Mocznik',uu)+inp('sbp','SBP','mmHg')+inp('gcs','GCS','')+'<label><input type="checkbox" id="dm"> znana cukrzyca</label></div>'+
+ '<div class="row">'+inp('glu','Glukoza','@glu')+inp('ket','Ketony',"mmol/l")+inp('ph','pH','')+inp('hco3','HCO₃⁻','mmol/l')+'</div>'+
+ '<div class="row">'+inp('k','K⁺','mmol/l')+inp('na','Na⁺','mmol/l')+inp('cl','Cl⁻','mmol/l')+inp('urea','Mocznik (urea)','@urea')+inp('sbp','SBP','mmHg')+inp('gcs','GCS','')+'<label><input type="checkbox" id="dm"> znana cukrzyca</label></div>'+
  '<div id="out"></div><div class="infobox" hidden></div><div class="disc">Narzędzie pomocnicze, niecertyfikowane. Każdą dawkę weryfikuje lekarz.</div>';
  var g=bind(el,'dka',upd);DKA.update=upd;
  infoToggle(el,'<h3>Źródła</h3>'+src([SK.dka.SRC.JBDS,SK.dka.SRC.JBDSH,SK.dka.SRC.ADA,SK.dka.SRC.INS])+
   '<p>Insulina: pen NovoRapid 100 j./ml – pobranie 0,5 ml (50 j.) do strzykawki 50 ml i uzupełnienie NaCl 0,9% do 50 ml = 1 j./ml. JBDS opisuje insulinę ludzką rozpuszczalną (Actrapid); użycie analogu z pena = praktyka lokalna, <span class="dw">DO WERYFIKACJI</span> z protokołem szpitala.</p>'+
-  '<p>Potas: wyłącznie gotowe worki z KCl wg protokołu / doustnie – <b>nigdy pompa strzykawkowa</b>.</p><p>Na skorygowany: Katz (1,6) i Hillier (2,4) na każde 100 mg/dl glukozy >100.</p>');
- function upd(){var P=X.P(),w=P.w,gl=g('glu'),ur=g('urea');var i={w:w,glu:mg?gl/18.016:gl,ket:g('ket'),ph:g('ph'),hco3:g('hco3'),k:g('k'),na:g('na'),cl:g('cl'),urea:mg?ur/6.006:ur,sbp:g('sbp'),gcs:g('gcs'),knownDM:g('dm'),co:P.co,age:P.age};
+  '<p>Potas: wyłącznie gotowe worki z KCl wg protokołu / doustnie – <b>nigdy pompa strzykawkowa</b>.</p><p>Na skorygowany: Katz (1,6) i Hillier (2,4) na każde 100 mg/dl (5,55 mmol/l) glukozy >100 mg/dl. Osmolalność = 2×Na + glukoza + mocznik (wszystko w mmol/l – przeliczane automatycznie z mg/dl).</p>');
+ function upd(){var P=X.P(),w=P.w,gl=g('glu'),ur=g('urea');var i={w:w,glu:gl,ket:g('ket'),ph:g('ph'),hco3:g('hco3'),k:g('k'),na:g('na'),cl:g('cl'),urea:ur,sbp:g('sbp'),gcs:g('gcs'),knownDM:g('dm'),co:P.co,age:P.age};
   var o=SK.dka.compute(i),H='';var dx={dka:'DKA',hhs:'HHS',mixed:'DKA + HHS (mieszany) → leczyć jak DKA',none:'Brak pełnych kryteriów DKA/HHS'}[o.mode];
   H+=bx(o.mode==='none'?'':o.lvl,'',' <span class="big">'+dx+'</span>'+(o.warn.length?'<div class="r">⚠ '+o.warn.map(h).join('<br>⚠ ')+'</div>':''));
   if(!o.indicated)H+=bx('orange','Insulina','<b>Uzupełnij dane / brak kryteriów — nie podawaj wlewu wg protokołu DKA</b>');
@@ -34,7 +41,7 @@ var DKA={id:'dka',icon:'🍬',name:'DKA / HHS',render:function(el,X){var S=X.S,m
   el.querySelector('#out').innerHTML=H;X.alarm('dka',o.lvl==='red');}
  upd();}};
 // ================= ELEKTROLITY =================
-var EL={id:'elyte',icon:'⚗️',name:'Elektrolity',render:function(el,X){var mg=X.S.units==='mgdl',tab=store('elyte_tab').get().t||'na';
+var EL={id:'elyte',icon:'⚗️',name:'Elektrolity',render:function(el,X){var UN=SK.units,tab=store('elyte_tab').get().t||'na';
  function draw(){el.innerHTML='<button class="info">ℹ</button><h2>Elektrolity</h2><div class="tabs">'+[['na','Na⁺'],['k','K⁺'],['mg','Mg²⁺'],['ca','Ca²⁺']].map(function(t){return '<button data-t="'+t[0]+'" class="'+(t[0]===tab?'on':'')+'">'+t[1]+'</button>'}).join('')+'</div><div id="f"></div><div id="out"></div><div class="infobox" hidden></div><div class="disc">Narzędzie pomocnicze, niecertyfikowane. Każdą dawkę weryfikuje lekarz.</div>';
   el.querySelectorAll('.tabs button').forEach(function(b){b.onclick=function(){tab=b.dataset.t;store('elyte_tab').set({t:tab});draw()}});
   var S=SK.elyte.SRC;infoToggle(el,'<h3>Źródła</h3>'+src([S.ESE,S.US,S.UKKA,S.ERC,S.SFE,'ChPL preparatów'])+
@@ -42,9 +49,9 @@ var EL={id:'elyte',icon:'⚗️',name:'Elektrolity',render:function(el,X){var mg
    '<p>K: insulina wg UKKA = insulina rozpuszczalna (Actrapid); NovoRapid = praktyka lokalna <span class="dw">DO WERYFIKACJI</span>.</p><p>Mg: leczenie hipomagnezemii poza TdP <span class="dw">DO WERYFIKACJI</span>. Preparaty PL (MgSO₄ 20%, Calcium chloratum 10%, Calcium gluconicum 10%) – sprawdź ampułkę <span class="dw">DO WERYFIKACJI</span>.</p>');
   var f=el.querySelector('#f');
   if(tab==='na')f.innerHTML='<div class="row">'+inp('na','Na⁺','mmol/l')+inp('tg','Plan wzrostu /24 h','mmol/l','5')+'<label><input type="checkbox" id="sev"> objawy ciężkie</label><label><input type="checkbox" id="hr"> wysokie ryzyko ODS (alkohol, niedożywienie, hipoK, wątroba, Na ≤105)</label></div>';
-  if(tab==='k')f.innerHTML='<div class="row">'+inp('k','K⁺','mmol/l')+inp('glu','Glukoza przed',mg?'mg/dl':'mmol/l')+'<label><input type="checkbox" id="ecg"> zmiany w EKG</label></div>';
-  if(tab==='mg')f.innerHTML='<div class="row">'+inp('mgv','Mg',mg?'mg/dl':'mmol/l')+'<label><input type="checkbox" id="tdp"> torsade de pointes</label></div>';
-  if(tab==='ca')f.innerHTML='<div class="row">'+inp('cav','Ca całk.',mg?'mg/dl':'mmol/l')+inp('alb','Albumina','g/l')+'<label><input type="checkbox" id="sy"> objawy (tężyczka, drgawki, QT)</label></div>';
+  if(tab==='k')f.innerHTML='<div class="row">'+inp('k','K⁺','mmol/l')+inp('glu','Glukoza przed','@glu')+'<label><input type="checkbox" id="ecg"> zmiany w EKG</label></div>';
+  if(tab==='mg')f.innerHTML='<div class="row">'+inp('mgv','Mg','@mg')+'<label><input type="checkbox" id="tdp"> torsade de pointes</label></div>';
+  if(tab==='ca')f.innerHTML='<div class="row">'+inp('cav','Ca całk.','@ca')+inp('alb','Albumina','g/l')+'<label><input type="checkbox" id="sy"> objawy (tężyczka, drgawki, QT)</label></div>';
   var g=bind(f,'elyte_'+tab,upd);EL.update=upd;
   function upd(){var P=X.P(),H='',lvl='ok';
    if(tab==='na'){var hr=g('hr')||P.co.liver;var o=SK.elyte.hypoNa({w:P.w,na:g('na'),sex:P.sex,age:P.age,severe:g('sev'),highRisk:hr,target:g('tg')});
@@ -53,13 +60,13 @@ var EL={id:'elyte',icon:'⚗️',name:'Elektrolity',render:function(el,X){var mg
      if(g('sev'))H+=bx('red','Objawy ciężkie','<span class="big">3% NaCl 150 ml w 20 min</span><div>Kontrola Na po 20 min, powtórz do 2× lub do wzrostu o 5 mmol/l</div><div class="mut">szac. wzrost po 150 ml: '+F(o.bolusRise,1)+' mmol/l</div>');
      H+=bx(o.lvl==='red'&&o.warn.length?'red':'ok','Limit korekcji','<span class="big">≤ '+o.limit+' mmol/l / 24 h</span>'+(o.limit===8?' <span class="o">(wysokie ryzyko ODS)</span>':'')+' · potem ≤8 / każde 24 h'+(o.warn.length?'<div class="r">⚠ '+o.warn.join('<br>')+'</div>':''));
      H+=bx('','Adrogué–Madias (TBW '+F(o.tbw,1)+' l)','1 l 3% NaCl: <b>+'+F(o.d3,1)+'</b> mmol/l · 1 l 0,9% NaCl: <b>+'+F(o.d09,1)+'</b> mmol/l<div>Plan +'+F(o.target,1)+' mmol/l/24 h → 3% NaCl <b>'+F(o.vol3,0)+' ml</b> = <b>'+F(o.mlh3,1)+' ml/h</b></div>');}}
-   if(tab==='k'){var gl=g('glu');var o=SK.elyte.hyperK({k:g('k'),ecg:g('ecg'),glu:mg?gl/18.016:gl});
+   if(tab==='k'){var gl=g('glu');var o=SK.elyte.hyperK({k:g('k'),ecg:g('ecg'),glu:gl});
     if(!o)H=bx('orange','','Podaj K⁺.');else{lvl=o.lvl;H+=bx(o.lvl,'','<span class="big">K⁺ '+F(g('k'),1)+(o.sev?' – hiperkaliemia '+o.sev:'')+'</span>');
      H+=o.steps.map(function(s,n){return bx(s.t==='Wapń'?'red':'ok',(n+1)+'. '+s.t,h(s.d))}).join('');if(!o.steps.length&&g('k')>=5.5)H+=bx('','','Leczenie przyczyny, kontrola K⁺ i EKG.');}}
-   if(tab==='mg'){var v=g('mgv');var o=SK.elyte.mg({mg:mg?v/2.431:v,tdp:g('tdp')});lvl=o.lvl;
-    H=o.txt?bx(o.lvl,'MgSO₄','<span class="big">'+h(o.txt)+'</span>'+(o.lvl==='red'?'<div>= '+F(o.mlOf20)+' ml MgSO₄ 20% (200 mg/ml)</div>':'')):bx('','','Mg: '+(isFinite(v)?F(v,2):'—'));}
-   if(tab==='ca'){var v=g('cav');var o=SK.elyte.ca({ca:mg?v/4.008:v,alb:g('alb'),sympt:g('sy')});
-    if(!o)H=bx('orange','','Podaj Ca.');else{lvl=o.lvl;H+=bx(o.lvl,'','Ca skorygowany: <span class="big">'+F(mg?o.corr*4.008:o.corr,2)+' '+(mg?'mg/dl':'mmol/l')+'</span>'+(o.corr>3?'<div class="r">⚠ Hiperkalcemia ciężka</div>':''));
+   if(tab==='mg'){var v=g('mgv');var o=SK.elyte.mg({mg:v,tdp:g('tdp')});lvl=o.lvl;
+    H=o.txt?bx(o.lvl,'MgSO₄','<span class="big">'+h(o.txt)+'</span>'+(o.lvl==='red'?'<div>= '+F(o.mlOf20)+' ml MgSO₄ 20% (200 mg/ml)</div>':'')):bx('','','Mg: '+(isFinite(v)?UN.round('mg',UN.fromSI('mg',v,X.S.units),X.S.units)+' '+UN.label('mg',X.S.units):'—'));}
+   if(tab==='ca'){var v=g('cav');var o=SK.elyte.ca({ca:v,alb:g('alb'),sympt:g('sy')});
+    if(!o)H=bx('orange','','Podaj Ca.');else{lvl=o.lvl;H+=bx(o.lvl,'','Ca skorygowany: <span class="big">'+UN.round('ca',UN.fromSI('ca',o.corr,X.S.units),X.S.units)+' '+UN.label('ca',X.S.units)+'</span>'+(o.corr>3?'<div class="r">⚠ Hiperkalcemia ciężka</div>':''));
      if(o.bolus)H+=bx('red','Hipokalcemia',h(o.bolus)+'<div>'+h(o.inf)+'</div>');}}
    el.querySelector('#out').innerHTML=H;X.alarm('elyte',lvl==='red');}
   upd();}
@@ -67,14 +74,13 @@ var EL={id:'elyte',icon:'⚗️',name:'Elektrolity',render:function(el,X){var mg
 // ================= USTAWIENIA / O PROGRAMIE =================
 var SET={id:'settings',icon:'⚙️',name:'Ustawienia',render:function(el,X){var S=X.S;
  el.innerHTML='<h2>Ustawienia</h2><div class="box"><div class="row"><label><input type="checkbox" id="snd"> Dźwięk syreny</label><label>Głośność <input type="range" id="vol" min="0" max="1" step="0.1" style="width:140px"></label><button id="tst" class="tg">▶ test alarmu</button></div>'+
- '<div class="row"><b>Glukoza/Ca/Mg/mocznik:</b><span class="seg" id="un"><button data-v="mmol">mmol/l</button><button data-v="mgdl">mg/dl</button></span></div>'+
- '<div class="row"><b>Kreatynina:</b><span class="seg" id="cu"><button data-v="mgdl">mg/dl</button><button data-v="umol">µmol/l</button></span></div>'+
+ '<div class="row"><b>Jednostki laboratoryjne (wszystkie moduły):</b><span class="seg" id="un"><button data-v="conv">mg/dl (mg%)</button><button data-v="si">SI (mmol/l, µmol/l)</button></span></div><p class="mut">Dotyczy: glukoza, mocznik, kreatynina, wapń, magnez, paracetamol (mg/l ↔ µmol/l). Na⁺, K⁺, Cl⁻, HCO₃⁻, ketony, mleczany – zawsze mmol/l (= mEq/l).</p>'+
  '<div class="row"><b>Czcionka:</b><span class="seg" id="fs"><button data-v="14">A−</button><button data-v="16">A</button><button data-v="19">A+</button><button data-v="22">A++</button></span></div>'+
  '<div class="row"><b>Domyślna strzykawka:</b><span class="seg" id="sy"><button data-v="50">50 ml</button><button data-v="20">20 ml</button></span></div>'+
  '<div class="row"><span class="mut">Motyw: jasny (jedyny).</span></div>'+
  '<div class="row"><button id="rst" class="tg" style="border-color:#d81b30;color:#d81b30">Reset – wyczyść wszystkie dane i ustawienia</button></div></div>';
- function seg(id,key,conv){var e=el.querySelector('#'+id);function r(){e.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',String(S[key])===b.dataset.v)})}r();e.onclick=function(ev){var b=ev.target.closest('button');if(b){X.setS(key,conv?conv(b.dataset.v):b.dataset.v);r();}}}
- seg('un','units');seg('cu','crea');seg('fs','fs',Number);seg('sy','syr',Number);
+ function seg(id,key,conv){var e=el.querySelector('#'+id);function r(){e.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',String(S[key])===b.dataset.v)})}r();e.onclick=function(ev){var b=ev.target.closest('button');if(b){if(key==='units')SKS.setUnits(b.dataset.v);else X.setS(key,conv?conv(b.dataset.v):b.dataset.v);r();}}}
+ seg('un','units');seg('fs','fs',Number);seg('sy','syr',Number);
  var sn=el.querySelector('#snd'),vo=el.querySelector('#vol');sn.checked=S.sound;vo.value=S.vol;sn.onchange=function(){X.setS('sound',sn.checked)};vo.oninput=function(){X.setS('vol',+vo.value)};
  el.querySelector('#tst').onclick=function(){X.alarm('test',true);setTimeout(function(){X.alarm('test',false)},2500)};
  el.querySelector('#rst').onclick=function(){if(confirm('Wyczyścić wszystkie dane pacjenta, ustawienia i stany modułów?')){localStorage.clear();sessionStorage.clear();location.reload();}};}};

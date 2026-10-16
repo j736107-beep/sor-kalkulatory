@@ -28,9 +28,9 @@ var SEP=tabbed({id:'sepsis',icon:'🦠',name:'Sepsa'},'Sepsa – pakiet 1 h',[['
   return{H:H,lvl:lvl};},info('sep','<p>Płyny 30 ml/kg przy hipotensji lub mleczanach ≥4 (SSC 2021: sugestia). Antybiotyki: wybór empiryczny '+dw('lokalna polityka antybiotykowa')+'.</p>'));
 // ZATRUCIA
 var TOX=tabbed({id:'tox',icon:'☠️',name:'Zatrucia'},'Zatrucia',[['p','Paracetamol'],['o','Opioidy'],['b','Benzodiazepiny']],
- function(t){return t==='p'?inp('mg','Dawka','mg')+inp('t','Czas od spożycia','h')+inp('lv','Stężenie','mg/l')+chk('stag','spożycie rozłożone / nieznany czas'):t==='o'?chk('dep','uzależnienie od opioidów')+inp('eff','Skuteczna dawka','mg'):chk('tca','TLPD / leki prodrgawkowe')+chk('chronic','przewlekłe BZD')+chk('seiz','padaczka')+chk('unk','nieznana mieszanina');},
+ function(t){return t==='p'?inp('mg','Dawka','mg')+inp('t','Czas od spożycia','h')+inp('lv','Stężenie','@para')+chk('stag','spożycie rozłożone / nieznany czas'):t==='o'?chk('dep','uzależnienie od opioidów')+inp('eff','Skuteczna dawka','mg'):chk('tca','TLPD / leki prodrgawkowe')+chk('chronic','przewlekłe BZD')+chk('seiz','padaczka')+chk('unk','nieznana mieszanina');},
  function(t,g,P){var w=P.w,H='',lvl='ok';
-  if(t==='p'){var o=B.para({mg:g('mg'),w:w,t:g('t'),level:g('lv'),stag:g('stag')});lvl=o.lvl;
+  if(t==='p'){var o=B.para({mg:g('mg'),w:w,t:g('t'),level:g('lv')/6.615,stag:g('stag')});lvl=o.lvl;
    var s='';if(isFinite(o.mgkg))s+='Dawka <b>'+F(o.mgkg,0)+' mg/kg</b>'+(o.mgkg>=150?' <span class="r">≥150</span>':'')+'<br>';
    if(isFinite(o.uk))s+='Linia leczenia w '+F(g('t'))+' h: UK <b>'+F(o.uk,0)+'</b> · US <b>'+F(o.us,0)+'</b> mg/l'+(o.aboveUK!=null?(o.aboveUK?' → <span class="r">POWYŻEJ – leczyć</span>':' → poniżej'):'');
    else if(isFinite(g('t')))s+='<span class="o">Nomogram tylko 4–24 h po jednorazowym spożyciu</span>';
@@ -54,9 +54,9 @@ var AF=tabbed({id:'af',icon:'💓',name:'AF'},'Migotanie przedsionków',[['s','C
   return{H:H,lvl:lvl};},info('af','<p>Flekainid: maks. 150 mg '+dw('limit z ChPL')+'. Diltiazem i.v. '+dw('dostępność w PL')+'.</p>'));
 // GI
 var GI=tabbed({id:'gib',icon:'🩸',name:'Krwawienie z GI'},'Krwawienie z górnego odcinka PP',[['g','Glasgow-Blatchford'],['l','Leczenie']],
- function(t){return t==='g'?inp('urea','Mocznik','mmol/l')+inp('hb','Hb','g/dl')+inp('sbp','SBP','mmHg')+inp('hr','HR','/min')+chk('mel','smoliste stolce')+chk('syn','omdlenie')+chk('liv','choroba wątroby')+chk('hf','niewydolność serca'):chk('var','podejrzenie żylaków / marskość')+chk('card','choroba wieńcowa');},
+ function(t){return t==='g'?inp('urea','Mocznik (urea)','@urea')+inp('hb','Hb','g/dl')+inp('sbp','SBP','mmHg')+inp('hr','HR','/min')+chk('mel','smoliste stolce')+chk('syn','omdlenie')+chk('liv','choroba wątroby')+chk('hf','niewydolność serca'):chk('var','podejrzenie żylaków / marskość')+chk('card','choroba wieńcowa');},
  function(t,g,P,X){var w=P.w,H='',lvl='ok';
-  if(t==='g'){var mg=X.S.units==='mgdl',u=g('urea');var s=B.gbs({urea:mg?u/6.006:u,hb:g('hb'),sbp:g('sbp'),hr:g('hr'),melena:g('mel'),syncope:g('syn'),liver:g('liv')||P.co.liver,hf:g('hf')||P.co.heart,sex:P.sex});lvl=s.lvl;
+  if(t==='g'){var u=g('urea');var s=B.gbs({urea:u,hb:g('hb'),sbp:g('sbp'),hr:g('hr'),melena:g('mel'),syncope:g('syn'),liver:g('liv')||P.co.liver,hf:g('hf')||P.co.heart,sex:P.sex});lvl=s.lvl;
    H=bx(s.lvl,'Glasgow-Blatchford','<span class="big">'+s.score+'</span> '+(s.low?'→ niskie ryzyko (≤1): rozważ wypis i endoskopię ambulatoryjną':'→ hospitalizacja, endoskopia ≤24 h'));}
   if(t==='l'){var hb=B.hbThreshold(g('card')||P.co.heart),te=B.terli(w);
    H+=bx('ok','PPI','<span class="big">Pantoprazol 80 mg i.v.</span><div>potem 40 mg i.v. co 12 h (ESGE 2021)</div>');

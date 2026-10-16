@@ -38,7 +38,7 @@ function ci(v){var a=CI_ABS.filter(function(c){return v[c[0]]}).map(function(c){
 // ciśnienie: phase 'pre' <185/110, 'post' <180/105 (24 h)
 function bp(sbp,dbp,phase){var L=phase==='post'?[180,105]:[185,110];if(!nz(sbp)&&!nz(dbp))return{lvl:'',lim:L};var hi=(nz(sbp)&&sbp>=L[0])||(nz(dbp)&&dbp>=L[1]);return{lvl:hi?'red':'ok',lim:L,hi:hi};}
 // glikemia mg/dl: <50 → korekta przed (mimik), >400 ostrożnie
-function glu(mg){if(!nz(mg))return{lvl:''};if(mg<50)return{lvl:'red',txt:'Hipoglikemia <50 mg/dl – wyrównaj i oceń ponownie (mimik udaru)'};if(mg>400)return{lvl:'orange',txt:'Glikemia >400 mg/dl – ostrożnie (ChPL: przeciwwskazanie Actilyse)'};if(mg>180)return{lvl:'orange',txt:'>180 mg/dl – celuj 140–180 mg/dl'};return{lvl:'ok',txt:'Glikemia w normie dla trombolizy'};}
+function glu(mg){if(!nz(mg))return{lvl:''};if(mg<50)return{lvl:'red',txt:'Hipoglikemia <50 mg/dl (2,8 mmol/l) – wyrównaj i oceń ponownie (mimik udaru)'};if(mg>400)return{lvl:'orange',txt:'Glikemia >400 mg/dl (22,2 mmol/l) – ostrożnie (ChPL: przeciwwskazanie Actilyse)'};if(mg>180)return{lvl:'orange',txt:'>180 mg/dl (10 mmol/l) – celuj 140–180 mg/dl (7,8–10 mmol/l)'};return{lvl:'ok',txt:'Glikemia w normie dla trombolizy'};}
 // ---------- ICH score ----------
 var ICH_MORT=[0,13,26,72,97,100,100];
 function ichScore(i){var s=0;if(nz(i.gcs)){s+=i.gcs<=4?2:i.gcs<=12?1:0;}if(i.vol>=30)s++;if(i.ivh)s++;if(i.infra)s++;if(nz(i.age)&&i.age>=80)s++;return{score:s,mort:ICH_MORT[s],lvl:s>=3?'orange':'ok'};}
@@ -84,7 +84,7 @@ function stroke(i){var s=i.s||{},o=i.o||{},c=i.cvt||{},tu=i.tu||{},R=[],add=func
   else add('orange','Tylne krążenie','HINTS (tylko ostry ciągły zespół przedsionkowy z oczopląsem); niski próg angio-TK; MR DWI pilnie, jeśli TK ujemne a podejrzenie trwa'+(i.hints==='peripheral'?' · HINTS obwodowy (nie wyklucza przy deficycie)':''),'AHA 2019 · ESO 2021 · Kattah 2009');}
  if(i.ac){var noac=i.ac==='dabi'||i.ac==='xa';add('orange','Antykoagulacja: '+({vka:'VKA',dabi:'dabigatran',xa:'anty-Xa',lmwh:'HDCz'}[i.ac])+(nz(i.acH)?' (ost. dawka '+i.acH+' h)':''),
   (i.ac==='vka'?'INR stat; INR >1,7 → brak trombolizy':noac?'Stężenie '+(i.ac==='dabi'?'dabigatranu (dTT/ECT)':'anty-Xa (kalibrowane)')+'; '+(nz(i.acH)&&i.acH>=48?'≥48 h – tromboliza możliwa przy prawidłowych testach':'<48 h / nieznany – tromboliza przeciwwskazana (rozważ trombektomię; dabigatran: idarucyzumab wg decyzji)'):'Pełna dawka <24 h → brak trombolizy')+'. Przy krwawieniu → odwracanie (moduł Antykoagulacja)',S_A+' · ESO 2021');}
- if(nz(i.gluMg)){if(i.gluMg<50)add('red','Hipoglikemia','Glukoza i.v. teraz, oceń deficyt ponownie',S_A);else if(i.gluMg>400)add('orange','Hiperglikemia >400 mg/dl','Wyrównaj; ChPL Actilyse – przeciwwskazanie',S_A+' · ChPL');}
+ if(nz(i.gluMg)){if(i.gluMg<50)add('red','Hipoglikemia','Glukoza i.v. teraz, oceń deficyt ponownie',S_A);else if(i.gluMg>400)add('orange','Hiperglikemia >400 mg/dl (22,2 mmol/l)','Wyrównaj; ChPL Actilyse – przeciwwskazanie',S_A+' · ChPL');}
  else if(any)add('orange','Glikemia','Oznacz glikemię z palca TERAZ – jedyny wynik wymagany przed trombolizą',S_A);
  if(nz(i.sbp)||nz(i.dbp)){if(code&&((i.sbp>=185)||(i.dbp>=110)))add('red','RR ≥185/110','Obniż <185/110 przed trombolizą (urapidil / labetalol)',S_A+' · '+S_E);
   else if(i.sbp>220||i.dbp>120)add('orange','RR >220/120','Bez trombolizy: obniż o ~15% w 24 h',S_A);
